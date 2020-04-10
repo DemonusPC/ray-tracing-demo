@@ -1,6 +1,7 @@
 use std::fmt;
 use std::ops;
 
+#[derive(Copy, Clone)]
 pub struct Vec3 {
     e: [f64; 3],
 }
@@ -56,6 +57,10 @@ impl Vec3 {
             u.e[2] * v.e[0] - u.e[0] * v.e[2],
             u.e[0] * v.e[1] - u.e[1] * v.e[0],
         )
+    }
+
+    pub fn unit_vector(v: Vec3) -> Vec3 {
+        v / v.length()
     }
 }
 
@@ -291,4 +296,13 @@ mod tests {
         let result = Vec3::cross(&one, &two);
         equality(&result, -1.0, -4.0, 3.0)
     }
+
+    
+    #[test]
+    fn test_unit_vector() {
+        let one = Vec3::new(2.0, -4.0, 1.0);
+        let result = Vec3::unit_vector(one);
+        equality(&result, 0.4364357804719848, -0.8728715609439696, 0.2182178902359924)
+    }
+
 }
