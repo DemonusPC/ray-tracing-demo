@@ -1,6 +1,8 @@
 use std::fmt;
 use std::ops;
 
+use crate::utility::clamp;
+
 #[derive(Copy, Clone)]
 pub struct Vec3 {
     e: [f64; 3],
@@ -35,15 +37,17 @@ impl Vec3 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
     }
 
-    pub fn write_color(&self) {
-        let ir = (255.999 * self.e[0]) as i32;
-        let ig = (255.999 * self.e[1]) as i32;
-        let ib = (255.999 * self.e[2]) as i32;
+    pub fn write_color(&self, samples_per_pixel: i32) {
+        let scale = 1.0 / samples_per_pixel as f64;
+
+        let r = scale * self.e[0];
+        let g = scale * self.e[1];
+        let b = scale * self.e[2];
         print!(
             "{} {} {}\n",
-            ir,
-            ig,
-            ib
+            (256.0 * clamp(r, 0.0, 0.999)) as i32,
+            (256.0 * clamp(g, 0.0, 0.999)) as i32,
+            (256.0 * clamp(b, 0.0, 0.999)) as i32,
         );
     }
 
