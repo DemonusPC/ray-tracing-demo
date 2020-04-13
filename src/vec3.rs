@@ -1,7 +1,8 @@
 use std::fmt;
 use std::ops;
+use std::f64::consts::PI;
 
-use crate::utility::clamp;
+use crate::utility::{clamp, random_double, random_double_from_values};
 
 #[derive(Copy, Clone)]
 pub struct Vec3 {
@@ -29,6 +30,41 @@ impl Vec3 {
         Vec3::new(0.0, 0.0, 0.0)
     }
 
+    pub fn random() -> Vec3 {
+        Vec3::new(random_double() , random_double(), random_double())
+    }
+
+    pub fn random_unit_vector() -> Vec3 {
+        let a = random_double_from_values(0.0, 2.0*PI);
+        let z = random_double_from_values(-1.0, 1.0);
+        let r = (1.0 - z*z).sqrt();
+
+        Vec3::new(r*a.cos(), r*a.sin(), z)
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let p = Vec3::random_from_values(-1.0, 1.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
+    }
+
+    pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
+        let in_unit_sphere = Vec3::random_in_unit_sphere();
+        if Vec3::dot(&in_unit_sphere, normal) > 0.0 {
+            return in_unit_sphere;
+        }
+
+        -in_unit_sphere
+    }
+
+    pub fn random_from_values(min: f64, max: f64) -> Vec3 {
+        Vec3::new(random_double_from_values(min, max), random_double_from_values(min, max), random_double_from_values(min, max))
+    }
+
     pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
@@ -40,9 +76,9 @@ impl Vec3 {
     pub fn write_color(&self, samples_per_pixel: i32) {
         let scale = 1.0 / samples_per_pixel as f64;
 
-        let r = scale * self.e[0];
-        let g = scale * self.e[1];
-        let b = scale * self.e[2];
+        let r = (scale * self.e[0]).sqrt();
+        let g = (scale * self.e[1]).sqrt();
+        let b = (scale * self.e[2]).sqrt();
         print!(
             "{} {} {}\n",
             (256.0 * clamp(r, 0.0, 0.999)) as i32,

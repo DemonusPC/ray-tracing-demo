@@ -22,6 +22,10 @@ pub fn random_double() -> f64 {
     result
 }
 
+pub fn random_double_from_values(min: f64, max: f64) -> f64 {
+    min + (max-min)*random_double()
+}
+
 
 pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
     if x < min {
