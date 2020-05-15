@@ -102,6 +102,12 @@ impl Vec3 {
     pub fn unit_vector(v: Vec3) -> Vec3 {
         v / v.length()
     }
+
+    pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+
+        let c = *n * (2.0 * Vec3::dot(v, n));
+        *v - c
+    }
 }
 
 impl ops::Neg for Vec3 {

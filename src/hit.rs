@@ -1,18 +1,24 @@
 use crate::ray::Ray;
 use crate::vec3::Vec3;
+use crate::models::Material;
+use crate::models::Lambertian;
+use crate::models::Metal;
+use std::rc::Rc;
 
 pub struct HitRecord {
     p: Vec3,
     normal: Vec3,
+    pub mat_ptr: Rc<dyn Material>,
     t: f64,
     front_face: bool
 }
 
 impl HitRecord {
-    pub fn new(p: Vec3, normal: Vec3, t: f64, front_face: bool) -> HitRecord {
+    pub fn new(p: Vec3, normal: Vec3, mat_ptr: Rc<dyn Material>, t: f64, front_face: bool) -> HitRecord {
         HitRecord {
             p: p,
             normal: normal,
+            mat_ptr: mat_ptr,
             t: t,
             front_face: front_face
         }
@@ -22,6 +28,7 @@ impl HitRecord {
         HitRecord {
             p: Vec3::empty(),
             normal: Vec3::empty(),
+            mat_ptr: Rc::new(Lambertian::new(Vec3::empty())),
             t: 0.0,
             front_face: true
         }
@@ -68,6 +75,7 @@ impl HitRecord {
         self.normal = other.normal();
         self.t = other.t();
         self.front_face = other.front_face();
+        self.mat_ptr = other.mat_ptr.clone();
     }
 }
 
@@ -88,14 +96,14 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let result = HitRecord::new(Vec3::new(1.0, 2.0, 3.0), Vec3::new(2.0, 0.0, 0.0), 0.0, true);
+        let result = HitRecord::new(Vec3::new(1.0, 2.0, 3.0), Vec3::new(2.0, 0.0, 0.0), Rc::new(Lambertian::new(Vec3::empty())), 0.0, true);
         equality(&result.p(), 1.0, 2.0, 3.0);
         equality(&result.normal(), 2.00, 0.0, 0.0);
     }
 
     #[test]
     fn test_set_p() {
-        let mut result = HitRecord::new(Vec3::new(1.0, 2.0, 3.0), Vec3::new(2.0, 0.0, 0.0), 0.0, true);
+        let mut result = HitRecord::new(Vec3::new(1.0, 2.0, 3.0), Vec3::new(2.0, 0.0, 0.0), Rc::new(Lambertian::new(Vec3::empty())),  0.0, true);
         equality(&result.p(), 1.0, 2.0, 3.0);
         result.set_p(Vec3::new(50.0, 10.0, 20.0));
         equality(&result.p(), 50.0, 10.0, 20.0);
@@ -103,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_set_normal() {
-        let mut result = HitRecord::new(Vec3::new(1.0, 2.0, 3.0), Vec3::new(2.0, 0.0, 0.0), 0.0, true);
+        let mut result = HitRecord::new(Vec3::new(1.0, 2.0, 3.0), Vec3::new(2.0, 0.0, 0.0), Rc::new(Lambertian::new(Vec3::empty())), 0.0, true);
         equality(&result.normal(), 2.00, 0.0, 0.0);
         result.set_normal(Vec3::new(50.0, 10.0, 20.0));
         equality(&result.normal(), 50.0, 10.0, 20.0);

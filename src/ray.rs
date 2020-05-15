@@ -13,6 +13,10 @@ impl Ray {
         }
     }
 
+    pub fn empty() -> Ray {
+        Ray::new(&Vec3::empty(), &Vec3::empty())
+    }
+
     pub fn origin(&self) -> Vec3 {
         self.origin
     }

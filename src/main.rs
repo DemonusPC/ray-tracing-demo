@@ -17,8 +17,11 @@ use hit::{HitRecord, HitAble};
 use hittable_list::HitAbleList;
 
 use models::Sphere;
+use models::Lambertian;
+use models::Metal;
 use camera::Camera;
 use utility::random_double;
+
 
 fn ray_color(r: &Ray, world: &dyn HitAble, depth: i32) -> Vec3 {
     let mut rec = HitRecord::empty();
@@ -29,10 +32,20 @@ fn ray_color(r: &Ray, world: &dyn HitAble, depth: i32) -> Vec3 {
 
     if world.hit(r, 0.001, INFINITY, &mut rec) {
         // let target = rec.p() + rec.normal() + Vec3::random_unit_vector();
+        
 
-        let target = rec.p() + Vec3::random_in_hemisphere(&rec.normal());
+        let mut scattered = Ray::empty();
+        let mut attenuation: Vec3 = Vec3::empty();
+        let scatter_result = rec.mat_ptr.as_ref().scatter(r, &rec, &mut attenuation, &mut scattered);
+        if scatter_result {
+            return attenuation * ray_color(&scattered, world, depth-1);
+        }
+        
+        // let target = rec.p() + Vec3::random_in_hemisphere(&rec.normal());
 
-        return ray_color(&Ray::new( &rec.p() , &(target - rec.p())), world, depth-1) * 0.5;
+        // return ray_color(&Ray::new( &rec.p() , &(target - rec.p())), world, depth-1) * 0.5;
+        
+        return Vec3::empty(); 
     }
 
     let unit_direction = Vec3::unit_vector(r.direction());
@@ -53,9 +66,11 @@ fn main() {
 
     let mut world = HitAbleList::new();
 
-    world.add(Rc::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)) );
-    world.add(Rc::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)) );
+    world.add(Rc::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, Rc::new(Lambertian::new(Vec3::new(0.7, 0.3, 0.3))) )) );
+    world.add(Rc::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, Rc::new(Lambertian::new(Vec3::new(0.8, 0.8, 0.0)))  )) );
 
+    world.add(Rc::new(Sphere::new(Vec3::new(1.0, 0.0, -1.0), 0.5, Rc::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.3 ))  )) );
+    world.add(Rc::new(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, Rc::new(Metal::new(Vec3::new(0.8, 0.8, 0.8), 1.0))  )) );
     let cam = Camera::new();
 
     for j in (0..image_height).rev() {
