@@ -2,14 +2,14 @@ use crate::vec3::Vec3;
 
 pub struct Ray {
     origin: Vec3,
-    direction: Vec3
+    direction: Vec3,
 }
 
 impl Ray {
     pub fn new(origin: &Vec3, direction: &Vec3) -> Ray {
         Ray {
             origin: origin.clone(),
-            direction: direction.clone()
+            direction: direction.clone(),
         }
     }
 
@@ -26,7 +26,7 @@ impl Ray {
     }
 
     pub fn at(&self, t: f64) -> Vec3 {
-        self.origin + (self.direction*t)
+        self.origin + (self.direction * t)
     }
 }
 
@@ -56,6 +56,5 @@ mod tests {
         let dir = Vec3::new(1.0, 1.0, 1.0);
         let result = Ray::new(&o, &dir);
         equality(&result.at(2.0), 2.0, 2.0, 2.0);
-
     }
 }

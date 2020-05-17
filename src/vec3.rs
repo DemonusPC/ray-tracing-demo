@@ -1,6 +1,6 @@
+use std::f64::consts::PI;
 use std::fmt;
 use std::ops;
-use std::f64::consts::PI;
 
 use crate::utility::{clamp, random_double, random_double_from_values};
 
@@ -31,15 +31,15 @@ impl Vec3 {
     }
 
     pub fn random() -> Vec3 {
-        Vec3::new(random_double() , random_double(), random_double())
+        Vec3::new(random_double(), random_double(), random_double())
     }
 
     pub fn random_unit_vector() -> Vec3 {
-        let a = random_double_from_values(0.0, 2.0*PI);
+        let a = random_double_from_values(0.0, 2.0 * PI);
         let z = random_double_from_values(-1.0, 1.0);
-        let r = (1.0 - z*z).sqrt();
+        let r = (1.0 - z * z).sqrt();
 
-        Vec3::new(r*a.cos(), r*a.sin(), z)
+        Vec3::new(r * a.cos(), r * a.sin(), z)
     }
 
     pub fn random_in_unit_sphere() -> Vec3 {
@@ -62,7 +62,11 @@ impl Vec3 {
     }
 
     pub fn random_from_values(min: f64, max: f64) -> Vec3 {
-        Vec3::new(random_double_from_values(min, max), random_double_from_values(min, max), random_double_from_values(min, max))
+        Vec3::new(
+            random_double_from_values(min, max),
+            random_double_from_values(min, max),
+            random_double_from_values(min, max),
+        )
     }
 
     pub fn length(&self) -> f64 {
@@ -104,13 +108,29 @@ impl Vec3 {
     }
 
     pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
-
         let c = *n * (2.0 * Vec3::dot(v, n));
         *v - c
+    }
+
+    pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f64) -> Vec3 {
+        let cos_theta = Vec3::dot(&-uv, n);
+        let r_out_parallel: Vec3 = (*uv + (*n * cos_theta)) * etai_over_etat;
+
+        let r_out_perp = *n * (-(1.0 - r_out_parallel.length_squared()).sqrt());
+
+        r_out_parallel + r_out_perp
     }
 }
 
 impl ops::Neg for Vec3 {
+    type Output = Vec3;
+
+    fn neg(self) -> Self::Output {
+        Vec3::new(-self.x(), -self.y(), -self.z())
+    }
+}
+
+impl ops::Neg for &Vec3 {
     type Output = Vec3;
 
     fn neg(self) -> Self::Output {
@@ -343,12 +363,31 @@ mod tests {
         equality(&result, -1.0, -4.0, 3.0)
     }
 
-    
     #[test]
     fn test_unit_vector() {
         let one = Vec3::new(2.0, -4.0, 1.0);
         let result = Vec3::unit_vector(one);
-        equality(&result, 0.4364357804719848, -0.8728715609439696, 0.2182178902359924)
+        equality(
+            &result,
+            0.4364357804719848,
+            -0.8728715609439696,
+            0.2182178902359924,
+        )
     }
 
+    #[test]
+    fn test_refract() {
+        let uv = Vec3::new(1.0, 2.0, -1.0);
+        let n = Vec3::new(-1.0, 1.0, -2.0);
+        let etai_over_etat = 1.2;
+
+        let result = Vec3::refract(&uv, &n, etai_over_etat);
+
+        equality(
+            &result,
+            12.576888838089431,
+            -8.976888838089431,
+            21.553777676178864,
+        )
+    }
 }

@@ -1,18 +1,18 @@
-use crate::hit::{ HitRecord, HitAble};
-use crate::vec3::Vec3;
+use crate::hit::{HitAble, HitRecord};
 use crate::ray::Ray;
+use crate::vec3::Vec3;
 
 use std::rc::Rc;
 
 pub struct HitAbleList {
-    objects: Vec<Rc<dyn HitAble>>
-} 
+    objects: Vec<Rc<dyn HitAble>>,
+}
 
 impl HitAbleList {
     pub fn new() -> HitAbleList {
         HitAbleList {
-            objects: Vec::new()
-        }   
+            objects: Vec::new(),
+        }
     }
 
     pub fn clear(&mut self) {
@@ -26,7 +26,13 @@ impl HitAbleList {
 
 impl HitAble for HitAbleList {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
-        let mut temp_rec = HitRecord::new(Vec3::empty(), Vec3::empty(), rec.mat_ptr.clone(), 0.0, false);
+        let mut temp_rec = HitRecord::new(
+            Vec3::empty(),
+            Vec3::empty(),
+            rec.mat_ptr.clone(),
+            0.0,
+            false,
+        );
         let mut hit_anything = false;
         let mut closest_so_far = t_max;
 

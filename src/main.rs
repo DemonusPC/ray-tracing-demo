@@ -1,27 +1,27 @@
-mod vec3;
-mod ray;
-mod hit;
-mod models;
-mod utility;
-mod hittable_list;
 mod camera;
+mod hit;
+mod hittable_list;
+mod models;
+mod ray;
+mod utility;
+mod vec3;
 
-use vec3::Vec3;
 use ray::Ray;
+use vec3::Vec3;
 
 use std::rc::Rc;
 
+use hit::{HitAble, HitRecord};
 use std::f64::INFINITY;
-use hit::{HitRecord, HitAble};
 
 use hittable_list::HitAbleList;
 
-use models::Sphere;
+use camera::Camera;
+use models::Dielectric;
 use models::Lambertian;
 use models::Metal;
-use camera::Camera;
+use models::Sphere;
 use utility::random_double;
-
 
 fn ray_color(r: &Ray, world: &dyn HitAble, depth: i32) -> Vec3 {
     let mut rec = HitRecord::empty();
@@ -32,27 +32,28 @@ fn ray_color(r: &Ray, world: &dyn HitAble, depth: i32) -> Vec3 {
 
     if world.hit(r, 0.001, INFINITY, &mut rec) {
         // let target = rec.p() + rec.normal() + Vec3::random_unit_vector();
-        
 
         let mut scattered = Ray::empty();
         let mut attenuation: Vec3 = Vec3::empty();
-        let scatter_result = rec.mat_ptr.as_ref().scatter(r, &rec, &mut attenuation, &mut scattered);
+        let scatter_result =
+            rec.mat_ptr
+                .as_ref()
+                .scatter(r, &rec, &mut attenuation, &mut scattered);
         if scatter_result {
-            return attenuation * ray_color(&scattered, world, depth-1);
+            return attenuation * ray_color(&scattered, world, depth - 1);
         }
-        
+
         // let target = rec.p() + Vec3::random_in_hemisphere(&rec.normal());
 
         // return ray_color(&Ray::new( &rec.p() , &(target - rec.p())), world, depth-1) * 0.5;
-        
-        return Vec3::empty(); 
+
+        return Vec3::empty();
     }
 
     let unit_direction = Vec3::unit_vector(r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
-    (Vec3::new(1.0, 1.0, 1.0)*(1.0-t)) + (Vec3::new(0.5, 0.7, 1.0)*t)
+    (Vec3::new(1.0, 1.0, 1.0) * (1.0 - t)) + (Vec3::new(0.5, 0.7, 1.0) * t)
 }
-
 
 fn main() {
     let image_width = 200;
@@ -62,15 +63,37 @@ fn main() {
 
     print!("P3\n{} {}\n255\n", image_width, image_height);
 
-    
-
     let mut world = HitAbleList::new();
 
-    world.add(Rc::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, Rc::new(Lambertian::new(Vec3::new(0.7, 0.3, 0.3))) )) );
-    world.add(Rc::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, Rc::new(Lambertian::new(Vec3::new(0.8, 0.8, 0.0)))  )) );
+    world.add(Rc::new(Sphere::new(
+        Vec3::new(0.0, 0.0, -1.0),
+        0.5,
+        Rc::new(Lambertian::new(Vec3::new(0.1, 0.2, 0.5))),
+    )));
 
-    world.add(Rc::new(Sphere::new(Vec3::new(1.0, 0.0, -1.0), 0.5, Rc::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.3 ))  )) );
-    world.add(Rc::new(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, Rc::new(Metal::new(Vec3::new(0.8, 0.8, 0.8), 1.0))  )) );
+    world.add(Rc::new(Sphere::new(
+        Vec3::new(0.0, -100.5, -1.0),
+        100.0,
+        Rc::new(Lambertian::new(Vec3::new(0.8, 0.8, 0.0))),
+    )));
+
+    world.add(Rc::new(Sphere::new(
+        Vec3::new(1.0, 0.0, -1.0),
+        0.5,
+        Rc::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0)),
+    )));
+
+    world.add(Rc::new(Sphere::new(
+        Vec3::new(-1.0, 0.0, -1.0),
+        0.5,
+        Rc::new(Dielectric::new(1.5)),
+    )));
+    world.add(Rc::new(Sphere::new(
+        Vec3::new(-1.0, 0.0, -1.0),
+        -0.45,
+        Rc::new(Dielectric::new(1.5)),
+    )));
+
     let cam = Camera::new();
 
     for j in (0..image_height).rev() {
@@ -83,8 +106,8 @@ fn main() {
 
                 let r = cam.get_ray(u, v);
                 color += ray_color(&r, &world, max_depth);
-        }
-        color.write_color(samples_per_pixel);
+            }
+            color.write_color(samples_per_pixel);
         }
     }
 
