@@ -94,7 +94,14 @@ fn main() {
         Rc::new(Dielectric::new(1.5)),
     )));
 
-    let cam = Camera::new();
+    let r = (std::f64::consts::PI / 4.0).cos();
+    let cam = Camera::new(
+        Vec3::new(-2.0, 2.0, 1.0),
+        Vec3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        image_width as f64 / image_height as f64,
+    );
 
     for j in (0..image_height).rev() {
         eprintln!("Scanlines remaining: {}", j);
