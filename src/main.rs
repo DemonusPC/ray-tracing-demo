@@ -94,13 +94,21 @@ fn main() {
         Rc::new(Dielectric::new(1.5)),
     )));
 
-    let r = (std::f64::consts::PI / 4.0).cos();
+    let lookfrom = Vec3::new(3.0, 3.0, 2.0);
+    let lookat = Vec3::new(0.0, 0.0, -1.0);
+    let vup = Vec3::new(0.0, 1.0, 0.0);
+
+    let dist_to_focus = (lookfrom - lookat).length();
+    let aperture = 2.0;
+
     let cam = Camera::new(
-        Vec3::new(-2.0, 2.0, 1.0),
-        Vec3::new(0.0, 0.0, -1.0),
-        Vec3::new(0.0, 1.0, 0.0),
+        lookfrom,
+        lookat,
+        vup,
         20.0,
         image_width as f64 / image_height as f64,
+        aperture,
+        dist_to_focus,
     );
 
     for j in (0..image_height).rev() {
