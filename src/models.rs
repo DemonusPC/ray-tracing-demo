@@ -95,7 +95,7 @@ impl Material for Lambertian {
         scattered: &mut Ray,
     ) -> bool {
         let scatter_direction = rec.normal() + Vec3::random_unit_vector();
-        *scattered = Ray::new(&rec.p(), &scatter_direction);
+        *scattered = Ray::new(&rec.p(), &scatter_direction, ray_in.time());
         *attenuation = Vec3::new(self.albedo.x(), self.albedo.y(), self.albedo.z());
         true
     }
@@ -128,6 +128,7 @@ impl Material for Metal {
         *scattered = Ray::new(
             &rec.p(),
             &(reflected + Vec3::random_in_unit_sphere() * self.fuzz),
+            ray_in.time()
         );
         *attenuation = Vec3::new(self.albedo.x(), self.albedo.y(), self.albedo.z());
 
@@ -176,7 +177,7 @@ impl Material for Dielectric {
 
         if etai_over_etat * sin_theta > 1.0 {
             let reflected = Vec3::reflect(&unit_direction, &rec.normal());
-            *scattered = Ray::new(&rec.p(), &reflected);
+            *scattered = Ray::new(&rec.p(), &reflected, ray_in.time());
             return true;
         }
 
@@ -184,15 +185,80 @@ impl Material for Dielectric {
 
         if random_double() < reflect_prob {
             let reflected = Vec3::reflect(&unit_direction, &rec.normal());
-            *scattered = Ray::new(&rec.p(), &reflected);
+            *scattered = Ray::new(&rec.p(), &reflected, ray_in.time());
 
             return true;
         }
 
         let refracted = Vec3::refract(&unit_direction, &rec.normal(), etai_over_etat);
 
-        *scattered = Ray::new(&rec.p(), &refracted);
+        *scattered = Ray::new(&rec.p(), &refracted, ray_in.time());
 
         true
     }
+}
+
+pub struct MovingSphere {
+    center0: Vec3,
+    center1: Vec3,
+    time0: f64,
+    time1: f64,
+    radius: f64,
+    mat_ptr: Rc<dyn Material>
+}
+
+impl MovingSphere {
+    pub fn new(center0: Vec3, center1: Vec3, time0: f64, time1: f64, radius: f64, mat_ptr: Rc<dyn Material>) -> Self {
+        Self {
+            center0,
+            center1,
+            time0,
+            time1,
+            radius,
+            mat_ptr
+        }
+    }
+
+    pub fn center(&self, time: f64) -> Vec3 {
+        return self.center0 + ((time - self.time0) / (self.time1 - self.time0) * (self.center1 - self.center0));
+    }
+}
+
+impl HitAble for MovingSphere {
+    
+fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+    let oc = r.origin() - self.center(r.time());
+    let a = r.direction().length_squared();
+    let half_b = Vec3::dot(&oc, &r.direction());
+    let c = oc.length_squared() - self.radius * self.radius;
+
+    let discriminant = half_b * half_b - a * c;
+
+    if discriminant > 0.0 {
+        let root = discriminant.sqrt();
+        let temp = (-half_b - root) / a;
+
+        if temp < t_max && temp > t_min {
+            rec.set_t(temp);
+            rec.set_p(r.at(rec.t()));
+            let outward_normal = (rec.p() - self.center(r.time())) / self.radius;
+            rec.set_face_normal(r, &outward_normal);
+            rec.mat_ptr = self.mat_ptr.clone();
+            return true;
+        }
+
+        let temp = (-half_b + root) / a;
+
+        if temp < t_max && temp > t_min {
+            rec.set_t(temp);
+            rec.set_p(r.at(rec.t()));
+            let outward_normal = (rec.p() - self.center(r.time())) / self.radius;
+            rec.set_face_normal(r, &outward_normal);
+            rec.mat_ptr = self.mat_ptr.clone();
+            return true;
+        }
+    }
+
+    false
+}
 }
