@@ -1,3 +1,4 @@
+mod aabb;
 mod camera;
 mod hit;
 mod hittable_list;
@@ -20,8 +21,8 @@ use camera::Camera;
 use models::Dielectric;
 use models::Lambertian;
 use models::Metal;
-use models::Sphere;
 use models::MovingSphere;
+use models::Sphere;
 use utility::{random_double, random_double_from_values};
 
 fn ray_color(r: &Ray, world: &dyn HitAble, depth: i32) -> Vec3 {
@@ -82,7 +83,14 @@ fn random_scene() -> HitAbleList {
                     let albedo = Vec3::random() * Vec3::random();
                     let sphere_material = Rc::new(Lambertian::new(albedo));
                     let center1 = center + Vec3::new(0.0, random_double_from_values(0.0, 0.5), 0.0);
-                    world.add(Rc::new(MovingSphere::new(center, center1, 0.0, 1.0,0.2, sphere_material)));
+                    world.add(Rc::new(MovingSphere::new(
+                        center,
+                        center1,
+                        0.0,
+                        1.0,
+                        0.2,
+                        sphere_material,
+                    )));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Vec3::random_from_values(0.5, 1.0);
@@ -150,7 +158,7 @@ fn main() {
         aperture,
         dist_to_focus,
         0.0,
-        1.0
+        1.0,
     );
 
     for j in (0..image_height).rev() {

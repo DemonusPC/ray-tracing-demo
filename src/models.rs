@@ -1,3 +1,4 @@
+use crate::aabb::AABB;
 use crate::hit::{HitAble, HitRecord};
 use crate::ray::Ray;
 use crate::utility::random_double;
@@ -74,6 +75,14 @@ impl HitAble for Sphere {
 
         false
     }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
+        let a = self.center() - Vec3::new(self.radius(), self.radius(), self.radius());
+        let b = self.center() + Vec3::new(self.radius(), self.radius(), self.radius());
+        *output_box = AABB::new(a, b);
+
+        true
+    }
 }
 
 pub struct Lambertian {
@@ -128,7 +137,7 @@ impl Material for Metal {
         *scattered = Ray::new(
             &rec.p(),
             &(reflected + Vec3::random_in_unit_sphere() * self.fuzz),
-            ray_in.time()
+            ray_in.time(),
         );
         *attenuation = Vec3::new(self.albedo.x(), self.albedo.y(), self.albedo.z());
 
@@ -204,61 +213,82 @@ pub struct MovingSphere {
     time0: f64,
     time1: f64,
     radius: f64,
-    mat_ptr: Rc<dyn Material>
+    mat_ptr: Rc<dyn Material>,
 }
 
 impl MovingSphere {
-    pub fn new(center0: Vec3, center1: Vec3, time0: f64, time1: f64, radius: f64, mat_ptr: Rc<dyn Material>) -> Self {
+    pub fn new(
+        center0: Vec3,
+        center1: Vec3,
+        time0: f64,
+        time1: f64,
+        radius: f64,
+        mat_ptr: Rc<dyn Material>,
+    ) -> Self {
         Self {
             center0,
             center1,
             time0,
             time1,
             radius,
-            mat_ptr
+            mat_ptr,
         }
     }
 
     pub fn center(&self, time: f64) -> Vec3 {
-        return self.center0 + ((time - self.time0) / (self.time1 - self.time0) * (self.center1 - self.center0));
+        return self.center0
+            + ((time - self.time0) / (self.time1 - self.time0) * (self.center1 - self.center0));
     }
 }
 
 impl HitAble for MovingSphere {
-    
-fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
-    let oc = r.origin() - self.center(r.time());
-    let a = r.direction().length_squared();
-    let half_b = Vec3::dot(&oc, &r.direction());
-    let c = oc.length_squared() - self.radius * self.radius;
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        let oc = r.origin() - self.center(r.time());
+        let a = r.direction().length_squared();
+        let half_b = Vec3::dot(&oc, &r.direction());
+        let c = oc.length_squared() - self.radius * self.radius;
 
-    let discriminant = half_b * half_b - a * c;
+        let discriminant = half_b * half_b - a * c;
 
-    if discriminant > 0.0 {
-        let root = discriminant.sqrt();
-        let temp = (-half_b - root) / a;
+        if discriminant > 0.0 {
+            let root = discriminant.sqrt();
+            let temp = (-half_b - root) / a;
 
-        if temp < t_max && temp > t_min {
-            rec.set_t(temp);
-            rec.set_p(r.at(rec.t()));
-            let outward_normal = (rec.p() - self.center(r.time())) / self.radius;
-            rec.set_face_normal(r, &outward_normal);
-            rec.mat_ptr = self.mat_ptr.clone();
-            return true;
+            if temp < t_max && temp > t_min {
+                rec.set_t(temp);
+                rec.set_p(r.at(rec.t()));
+                let outward_normal = (rec.p() - self.center(r.time())) / self.radius;
+                rec.set_face_normal(r, &outward_normal);
+                rec.mat_ptr = self.mat_ptr.clone();
+                return true;
+            }
+
+            let temp = (-half_b + root) / a;
+
+            if temp < t_max && temp > t_min {
+                rec.set_t(temp);
+                rec.set_p(r.at(rec.t()));
+                let outward_normal = (rec.p() - self.center(r.time())) / self.radius;
+                rec.set_face_normal(r, &outward_normal);
+                rec.mat_ptr = self.mat_ptr.clone();
+                return true;
+            }
         }
 
-        let temp = (-half_b + root) / a;
-
-        if temp < t_max && temp > t_min {
-            rec.set_t(temp);
-            rec.set_p(r.at(rec.t()));
-            let outward_normal = (rec.p() - self.center(r.time())) / self.radius;
-            rec.set_face_normal(r, &outward_normal);
-            rec.mat_ptr = self.mat_ptr.clone();
-            return true;
-        }
+        false
     }
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
+        let a0 = self.center(time0) - Vec3::new(self.radius, self.radius, self.radius);
+        let b0 = self.center(time0) + Vec3::new(self.radius, self.radius, self.radius);
+        let box0 = AABB::new(a0, b0);
 
-    false
-}
+        let a1 = self.center(time1) - Vec3::new(self.radius, self.radius, self.radius);
+        let b1 = self.center(time1) + Vec3::new(self.radius, self.radius, self.radius);
+
+        let box1 = AABB::new(a1, b1);
+
+        *output_box = AABB::surrounding_box(box0, box1);
+
+        true
+    }
 }

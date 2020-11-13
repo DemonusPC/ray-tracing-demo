@@ -2,7 +2,7 @@ use std::f64::consts::PI;
 use std::fmt;
 use std::ops;
 
-use crate::utility::{clamp, random_double, random_double_from_values};
+use crate::utility::{clamp, ffmin, random_double, random_double_from_values};
 
 #[derive(Copy, Clone)]
 pub struct Vec3 {
@@ -127,10 +127,11 @@ impl Vec3 {
     }
 
     pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f64) -> Vec3 {
-        let cos_theta = Vec3::dot(&-uv, n);
-        let r_out_parallel: Vec3 = (*uv + (*n * cos_theta)) * etai_over_etat;
+        let cos_theta = ffmin(Vec3::dot(&-uv, n), 1.0);
 
-        let r_out_perp = *n * (-(1.0 - r_out_parallel.length_squared()).sqrt());
+        let r_out_perp: Vec3 = etai_over_etat * (uv.clone() + (cos_theta * n.clone()));
+
+        let r_out_parallel = (-((1.0 - r_out_perp.length_squared()).abs()).sqrt()) * n.clone();
 
         r_out_parallel + r_out_perp
     }
@@ -407,9 +408,9 @@ mod tests {
 
         equality(
             &result,
-            12.576888838089431,
-            -8.976888838089431,
-            21.553777676178864,
+            12.512327793863538,
+            -8.912327793863536,
+            21.424655587727074,
         )
     }
 }
