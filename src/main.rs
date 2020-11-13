@@ -6,6 +6,7 @@ mod models;
 mod ray;
 mod utility;
 mod vec3;
+mod bvh;
 
 use ray::Ray;
 use vec3::Vec3;

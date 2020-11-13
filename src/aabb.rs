@@ -1,7 +1,7 @@
 use crate::ray::Ray;
 use crate::utility::{ffmax, ffmin};
 use crate::vec3::Vec3;
-
+#[derive(Copy, Clone)]
 pub struct AABB {
     minimum: Vec3,
     maximum: Vec3,
@@ -23,7 +23,7 @@ impl AABB {
         &self.maximum
     }
 
-    pub fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> bool {
+    pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> bool {
         for a in 0..3 {
             let invD = 1.0 / r.direction()[a];
             let mut t0 = (self.min()[a] - r.origin()[a]) * invD;
