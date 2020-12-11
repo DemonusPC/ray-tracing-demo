@@ -1,12 +1,13 @@
 mod aabb;
+mod bvh;
 mod camera;
 mod hit;
 mod hittable_list;
+mod material;
 mod models;
 mod ray;
 mod utility;
 mod vec3;
-mod bvh;
 
 use ray::Ray;
 use vec3::Vec3;
@@ -19,9 +20,9 @@ use std::f64::INFINITY;
 use hittable_list::HitAbleList;
 
 use camera::Camera;
-use models::Dielectric;
-use models::Lambertian;
-use models::Metal;
+use material::Dielectric;
+use material::Lambertian;
+use material::Metal;
 use models::MovingSphere;
 use models::Sphere;
 use utility::{random_double, random_double_from_values};

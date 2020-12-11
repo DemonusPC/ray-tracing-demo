@@ -1,7 +1,7 @@
 use crate::aabb::AABB;
-use crate::models::Lambertian;
-use crate::models::Material;
-use crate::models::Metal;
+use crate::material::Lambertian;
+use crate::material::Material;
+use crate::material::Metal;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 use std::rc::Rc;

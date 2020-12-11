@@ -53,7 +53,7 @@ impl HitAble for HitAbleList {
         }
 
         // In the original file the temp box is outside of the for loop
-                
+
         let mut first_box = true;
 
         for object in self.objects.as_slice() {
