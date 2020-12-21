@@ -3,10 +3,8 @@ use crate::hit::{HitAble, HitRecord};
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-use std::rc::Rc;
-
 pub struct HitAbleList {
-    objects: Vec<Rc<dyn HitAble>>,
+    objects: Vec<Box<dyn HitAble>>,
 }
 
 impl HitAbleList {
@@ -20,7 +18,7 @@ impl HitAbleList {
         self.objects.clear();
     }
 
-    pub fn add(&mut self, object: Rc<dyn HitAble>) {
+    pub fn add(&mut self, object: Box<dyn HitAble>) {
         self.objects.push(object);
     }
 }
