@@ -48,10 +48,12 @@ fn ray_color_new(r: &Ray, world: &World, depth: i32) -> Vec3 {
             return attenuation * ray_color_new(&scattered, world, depth-1);
         }
 
+        return Vec3::empty();
     }
 
-    Vec3::empty()
-
+    let unit_direction = Vec3::unit_vector(r.direction());
+    let t = 0.5 * (unit_direction.y() + 1.0);
+    (Vec3::new(1.0, 1.0, 1.0) * (1.0 - t)) + (Vec3::new(0.5, 0.7, 1.0) * t)
 }
 
 fn ray_color(r: &Ray, world: &dyn HitAble, depth: i32) -> Vec3 {
