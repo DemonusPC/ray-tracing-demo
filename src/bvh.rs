@@ -1,6 +1,5 @@
 use crate::aabb::AABB;
 use crate::HitAble;
-use crate::HitAbleList;
 use std::rc::Rc;
 
 pub struct BvhNode {

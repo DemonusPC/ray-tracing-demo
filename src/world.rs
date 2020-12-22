@@ -3,7 +3,6 @@ use crate::material::Material;
 use crate::models::Sphere;
 use crate::hit::HitRecord;
 use crate::ray::Ray;
-use crate::vec3::Vec3;
 use crate::hit::HitAble;
 
 pub struct World {
