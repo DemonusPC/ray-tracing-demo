@@ -1,9 +1,10 @@
 use std::rc::Rc;
-use crate::material::Material;
+use crate::{material::Material};
 use crate::models::Sphere;
 use crate::hit::HitRecord;
 use crate::ray::Ray;
 use crate::hit::HitAble;
+use crate::aabb::{AABB };
 
 pub struct World {
     spheres: Vec<Sphere>,
@@ -40,6 +41,33 @@ impl World {
         }
 
         (hit_anything, temp_rec)
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
+        if self.spheres.is_empty() {
+            return false;
+        }
+
+        // In the original file the temp box is outside of the for loop
+                
+        let mut first_box = true;
+
+        for object in self.spheres.as_slice() {
+            let mut temp_box = AABB::empty();
+            if !object.bounding_box(time0, time1, &mut temp_box) {
+                return false;
+            }
+
+            *output_box = if first_box {
+                temp_box
+            } else {
+                AABB::surrounding_box_mut(output_box, temp_box)
+            };
+
+            first_box = false;
+        }
+
+        true
     }
 }
 
