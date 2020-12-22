@@ -1,12 +1,14 @@
-use crate::aabb::AABB;
+use crate::{aabb::AABB, world::World};
 use crate::HitAble;
 use std::rc::Rc;
+use crate::utility::random_int_from_values;
 
 pub struct BvhNode {
     left: Rc<HitAble>,
     right: Rc<HitAble>,
     node_box: AABB,
 }
+
 
 impl BvhNode {}
 
@@ -29,7 +31,7 @@ impl HitAble for BvhNode {
         hit_left || hit_right
     }
 
-    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut crate::aabb::AABB) -> bool {
+    fn bounding_box(&self, _: f64, _: f64, output_box: &mut crate::aabb::AABB) -> bool {
         *output_box = self.node_box;
         true
     }
