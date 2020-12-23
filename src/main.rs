@@ -137,6 +137,30 @@ fn random_scene_new() -> World {
     World::new(spheres, materials)
 }
 
+fn two_spheres_scene() -> World {
+    let mut spheres: Vec<Sphere> = vec![];
+    let mut materials: Vec<Rc<dyn Material>> = vec![];
+
+    let checker = CheckerTexture::new(Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9));
+    let ground_material = Rc::new(Lambertian::from_checker(checker));
+    spheres.push(Sphere::new(
+        Vec3::new(0.0, -10.0, 0.0),
+        10.0,
+        ground_material.clone(),
+    ));
+    materials.push(ground_material);
+
+    let checker2 = CheckerTexture::new(Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9));
+    let ground_material2 = Rc::new(Lambertian::from_checker(checker2));
+    spheres.push(Sphere::new(
+        Vec3::new(0.0, 10.0, 0.0),
+        10.0,
+        ground_material2.clone(),
+    ));
+    materials.push(ground_material2);
+
+    World::new(spheres, materials)
+}
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
@@ -148,7 +172,8 @@ fn main() {
     print!("P3\n{} {}\n255\n", image_width, image_height);
 
     // let world = random_scene();
-    let world = random_scene_new();
+    // let world = random_scene_new();
+    let world = two_spheres_scene();
 
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
     let lookat = Vec3::new(0.0, 0.0, 0.0);
