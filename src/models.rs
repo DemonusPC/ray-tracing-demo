@@ -27,6 +27,16 @@ impl Sphere {
     pub fn radius(&self) -> f64 {
         self.radius
     }
+
+    pub fn get_sphere_uv(p: &Vec3, u: f64, v: f64) -> (f64, f64) {
+        let theta = (-p.y()).acos();
+        let phi = -p.z().atan2(p.x()) + std::f64::consts::PI;
+
+        let u = phi / (2.0 * std::f64::consts::PI);
+        let v= theta / std::f64::consts::PI;
+
+        (u, v)
+    }
 }
 
 impl HitAble for Sphere {
@@ -47,6 +57,7 @@ impl HitAble for Sphere {
                 rec.set_p(r.at(rec.t()));
                 let outward_normal = (rec.p() - self.center) / self.radius;
                 rec.set_face_normal(r, &outward_normal);
+                rec.set_uv(Sphere::get_sphere_uv(&outward_normal, rec.u(), rec.v()));
                 rec.mat_ptr = self.mat_prt.clone();
                 return true;
             }
@@ -58,6 +69,7 @@ impl HitAble for Sphere {
                 rec.set_p(r.at(rec.t()));
                 let outward_normal = (rec.p() - self.center) / self.radius;
                 rec.set_face_normal(r, &outward_normal);
+                rec.set_uv(Sphere::get_sphere_uv(&outward_normal, rec.u(), rec.v()));
                 rec.mat_ptr = self.mat_prt.clone();
                 return true;
             }

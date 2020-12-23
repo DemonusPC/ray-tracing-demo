@@ -8,9 +8,11 @@ mod ray;
 mod utility;
 mod vec3;
 mod world;
+mod texture;
 
 use crate::material::Material;
 use ray::Ray;
+use texture::CheckerTexture;
 use vec3::Vec3;
 
 use std::rc::Rc;
@@ -57,7 +59,11 @@ fn random_scene_new() -> World {
     let mut spheres: Vec<Sphere> = vec![];
     let mut materials: Vec<Rc<dyn Material>> = vec![];
 
-    let ground_material = Rc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5)));
+    // let ground_material = Rc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5)));
+
+    let checker = CheckerTexture::new(Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9));
+
+    let ground_material = Rc::new(Lambertian::from_checker(checker));
     spheres.push(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,

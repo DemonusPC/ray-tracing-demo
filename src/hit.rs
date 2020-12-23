@@ -11,6 +11,8 @@ pub struct HitRecord {
     normal: Vec3,
     pub mat_ptr: Rc<dyn Material>,
     t: f64,
+    u: f64,
+    v: f64,
     front_face: bool,
 }
 
@@ -20,6 +22,8 @@ impl HitRecord {
         normal: Vec3,
         mat_ptr: Rc<dyn Material>,
         t: f64,
+        u: f64,
+        v: f64,
         front_face: bool,
     ) -> HitRecord {
         HitRecord {
@@ -27,6 +31,8 @@ impl HitRecord {
             normal: normal,
             mat_ptr: mat_ptr,
             t: t,
+            u,
+            v,
             front_face: front_face,
         }
     }
@@ -37,6 +43,8 @@ impl HitRecord {
             normal: Vec3::empty(),
             mat_ptr: Rc::new(Lambertian::new(Vec3::empty())),
             t: 0.0,
+            u: 0.0,
+            v: 0.0,
             front_face: true,
         }
     }
@@ -84,6 +92,29 @@ impl HitRecord {
         self.front_face = other.front_face();
         self.mat_ptr = other.mat_ptr.clone();
     }
+
+    pub fn set_uv(&mut self, uv: (f64, f64)) {
+        self.set_u(uv.0);
+        self.set_v(uv.1);
+    } 
+
+    pub fn set_u(&mut self, new_u: f64) {
+        self.u = new_u;
+    }
+
+    pub fn set_v(&mut self, new_v: f64) {
+        self.v = new_v;
+    }
+
+    pub fn u(&self) -> f64 {
+        self.u
+    }
+
+    pub fn v(&self) -> f64 {
+        self.v
+    }
+
+    
 }
 
 pub trait HitAble {
