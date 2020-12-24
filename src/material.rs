@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{hit::HitRecord, texture::CheckerTexture};
+use crate::{hit::HitRecord, texture::{CheckerTexture, PerlinTexture}};
 use crate::random_double;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
@@ -27,6 +27,10 @@ impl Lambertian {
 
     pub fn from_checker(texture: CheckerTexture) -> Lambertian {
         Lambertian { albedo: Rc::new(texture) }
+    }
+
+    pub fn from_perlin(texture: PerlinTexture) -> Lambertian {
+        Lambertian { albedo: Rc::new(texture)}
     }
 }
 

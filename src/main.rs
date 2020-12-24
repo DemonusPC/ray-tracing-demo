@@ -12,7 +12,7 @@ mod texture;
 
 use crate::material::Material;
 use ray::Ray;
-use texture::CheckerTexture;
+use texture::{CheckerTexture, PerlinTexture};
 use vec3::Vec3;
 
 use std::rc::Rc;
@@ -162,6 +162,33 @@ fn two_spheres_scene() -> World {
     World::new(spheres, materials)
 }
 
+fn two_perlin_spheres() -> World {
+    let mut spheres: Vec<Sphere> = vec![];
+    let mut materials: Vec<Rc<dyn Material>> = vec![];
+
+    let pertext1 = PerlinTexture::new();
+
+    let ground_material = Rc::new(Lambertian::from_perlin(pertext1));
+    spheres.push(Sphere::new(
+        Vec3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        ground_material.clone(),
+    ));
+    materials.push(ground_material);
+
+    let pertext2 = PerlinTexture::new();
+
+    let ground_material2 = Rc::new(Lambertian::from_perlin(pertext2));
+    spheres.push(Sphere::new(
+        Vec3::new(0.0, 2.0, 0.0),
+        2.0,
+        ground_material2.clone(),
+    ));
+    materials.push(ground_material2);
+
+    World::new(spheres, materials)
+}
+
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
@@ -173,7 +200,8 @@ fn main() {
 
     // let world = random_scene();
     // let world = random_scene_new();
-    let world = two_spheres_scene();
+    // let world = two_spheres_scene();
+    let world = two_perlin_spheres();
 
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
     let lookat = Vec3::new(0.0, 0.0, 0.0);

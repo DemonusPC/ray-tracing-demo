@@ -26,10 +26,6 @@ impl World {
         }
     }
 
-    pub fn world(&self) -> std::iter::Zip<std::slice::Iter<'_, Sphere>, std::slice::Iter<'_, std::rc::Rc<dyn Material>>> {
-        self.spheres.iter().zip(self.materials.iter())
-    }
-
     pub fn get(&self, index: usize) -> (&Sphere, &Rc<dyn Material>) {
         (&self.spheres[index], &self.materials[index])
     }
