@@ -80,6 +80,20 @@ impl PerlinTexture {
         }
     }
 
+    fn turb(&self, p: &Vec3) -> f64 {
+        let mut accum: f64 = 0.0;
+        let mut temp_p = p.clone();
+        let mut weight = 1.0;
+        
+        for _ in 0..7 {
+            accum += weight * self.noise(&temp_p);
+            weight *= 0.5;
+            temp_p *= 2.0;
+        }
+
+        accum.abs()
+    }
+
     fn noise(&self, p: &Vec3) -> f64 {
         let u = p.x() - p.x().floor();
         let v = p.y() - p.y().floor();
@@ -108,7 +122,7 @@ impl PerlinTexture {
 
 impl Texture for PerlinTexture {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
-        return Vec3::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + self.noise(&(self.scale * *p)));
+        return Vec3::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + self.turb(&(self.scale * *p)));
     }
 }
 
