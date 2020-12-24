@@ -5,10 +5,10 @@ mod hit;
 mod material;
 mod models;
 mod ray;
+mod texture;
 mod utility;
 mod vec3;
 mod world;
-mod texture;
 
 use crate::material::Material;
 use ray::Ray;
@@ -20,7 +20,6 @@ use std::rc::Rc;
 use hit::HitAble;
 use std::f64::INFINITY;
 
-
 use camera::Camera;
 use material::Dielectric;
 use material::Lambertian;
@@ -28,7 +27,6 @@ use material::Metal;
 use models::Sphere;
 use utility::{random_double, random_double_from_values};
 use world::World;
-
 
 fn ray_color(r: &Ray, world: &World, depth: i32) -> Vec3 {
     if depth <= 0 {
@@ -41,10 +39,15 @@ fn ray_color(r: &Ray, world: &World, depth: i32) -> Vec3 {
         let mut scattered = Ray::empty();
         let mut attenuation: Vec3 = Vec3::empty();
 
-        let scatter_result = result.1.mat_ptr.as_ref().scatter(r, &result.1, &mut attenuation, &mut scattered);
+        let scatter_result =
+            result
+                .1
+                .mat_ptr
+                .as_ref()
+                .scatter(r, &result.1, &mut attenuation, &mut scattered);
 
         if scatter_result {
-            return attenuation * ray_color(&scattered, world, depth-1);
+            return attenuation * ray_color(&scattered, world, depth - 1);
         }
 
         return Vec3::empty();
@@ -86,11 +89,7 @@ fn random_scene_new() -> World {
                     // diffuse
                     let albedo = Vec3::random() * Vec3::random();
                     let sphere_material = Rc::new(Lambertian::new(albedo));
-                    spheres.push(Sphere::new(
-                        center,
-                        0.2,
-                        sphere_material.clone(),
-                    ));
+                    spheres.push(Sphere::new(center, 0.2, sphere_material.clone()));
                     materials.push(sphere_material);
                 } else if choose_mat < 0.95 {
                     // metal

@@ -96,7 +96,7 @@ impl HitRecord {
     pub fn set_uv(&mut self, uv: (f64, f64)) {
         self.set_u(uv.0);
         self.set_v(uv.1);
-    } 
+    }
 
     pub fn set_u(&mut self, new_u: f64) {
         self.u = new_u;
@@ -113,8 +113,6 @@ impl HitRecord {
     pub fn v(&self) -> f64 {
         self.v
     }
-
-    
 }
 
 pub trait HitAble {

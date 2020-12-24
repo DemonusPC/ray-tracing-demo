@@ -1,14 +1,13 @@
-use crate::{aabb::AABB, world::World};
-use crate::HitAble;
-use std::rc::Rc;
 use crate::utility::random_int_from_values;
+use crate::HitAble;
+use crate::{aabb::AABB, world::World};
+use std::rc::Rc;
 
 pub struct BvhNode {
     left: Rc<HitAble>,
     right: Rc<HitAble>,
     node_box: AABB,
 }
-
 
 impl BvhNode {}
 

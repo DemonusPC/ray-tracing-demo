@@ -11,10 +11,10 @@ impl AABB {
     pub fn empty() -> Self {
         Self {
             minimum: Vec3::empty(),
-            maximum: Vec3::empty()
+            maximum: Vec3::empty(),
         }
     }
-    
+
     pub fn new(a: Vec3, b: Vec3) -> Self {
         Self {
             minimum: a,

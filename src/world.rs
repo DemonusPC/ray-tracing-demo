@@ -1,29 +1,26 @@
-use std::rc::Rc;
-use crate::{material::Material};
-use crate::models::Sphere;
-use crate::hit::HitRecord;
-use crate::ray::Ray;
+use crate::aabb::AABB;
 use crate::hit::HitAble;
-use crate::aabb::{AABB };
+use crate::hit::HitRecord;
+use crate::material::Material;
+use crate::models::Sphere;
+use crate::ray::Ray;
+use std::rc::Rc;
 
 pub struct World {
     spheres: Vec<Sphere>,
-    materials: Vec<Rc<dyn Material>>
+    materials: Vec<Rc<dyn Material>>,
 }
 
 impl World {
-    pub fn empty() -> Self{
+    pub fn empty() -> Self {
         World {
             spheres: vec![],
-            materials: vec![]
+            materials: vec![],
         }
     }
 
     pub fn new(spheres: Vec<Sphere>, materials: Vec<Rc<dyn Material>>) -> Self {
-        World {
-            spheres,
-            materials
-        }
+        World { spheres, materials }
     }
 
     pub fn get(&self, index: usize) -> (&Sphere, &Rc<dyn Material>) {
@@ -32,7 +29,7 @@ impl World {
 
     pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> (bool, HitRecord) {
         let mut temp_rec = HitRecord::empty();
-        
+
         let mut hit_anything = false;
         let mut closest_so_far = t_max;
 
@@ -53,7 +50,7 @@ impl World {
         }
 
         // In the original file the temp box is outside of the for loop
-                
+
         let mut first_box = true;
 
         for object in self.spheres.as_slice() {
@@ -74,4 +71,3 @@ impl World {
         true
     }
 }
-

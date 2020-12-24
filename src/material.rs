@@ -1,10 +1,13 @@
 use std::rc::Rc;
 
-use crate::{hit::HitRecord, texture::{CheckerTexture, PerlinTexture}};
 use crate::random_double;
 use crate::ray::Ray;
-use crate::vec3::Vec3;
 use crate::texture::{SolidColor, Texture};
+use crate::vec3::Vec3;
+use crate::{
+    hit::HitRecord,
+    texture::{CheckerTexture, PerlinTexture},
+};
 
 pub trait Material {
     fn scatter(
@@ -22,15 +25,21 @@ pub struct Lambertian {
 
 impl Lambertian {
     pub fn new(color: Vec3) -> Lambertian {
-        Lambertian { albedo: Rc::new(SolidColor::new(color)) }
+        Lambertian {
+            albedo: Rc::new(SolidColor::new(color)),
+        }
     }
 
     pub fn from_checker(texture: CheckerTexture) -> Lambertian {
-        Lambertian { albedo: Rc::new(texture) }
+        Lambertian {
+            albedo: Rc::new(texture),
+        }
     }
 
     pub fn from_perlin(texture: PerlinTexture) -> Lambertian {
-        Lambertian { albedo: Rc::new(texture)}
+        Lambertian {
+            albedo: Rc::new(texture),
+        }
     }
 }
 

@@ -33,7 +33,7 @@ impl Sphere {
         let phi = -p.z().atan2(p.x()) + std::f64::consts::PI;
 
         let u = phi / (2.0 * std::f64::consts::PI);
-        let v= theta / std::f64::consts::PI;
+        let v = theta / std::f64::consts::PI;
 
         (u, v)
     }
