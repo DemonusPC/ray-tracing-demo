@@ -165,7 +165,7 @@ fn two_perlin_spheres() -> World {
     let mut spheres: Vec<Sphere> = vec![];
     let mut materials: Vec<Rc<dyn Material>> = vec![];
 
-    let pertext1 = PerlinTexture::new();
+    let pertext1 = PerlinTexture::new(4.0);
 
     let ground_material = Rc::new(Lambertian::from_perlin(pertext1));
     spheres.push(Sphere::new(
@@ -175,7 +175,7 @@ fn two_perlin_spheres() -> World {
     ));
     materials.push(ground_material);
 
-    let pertext2 = PerlinTexture::new();
+    let pertext2 = PerlinTexture::new(4.0);
 
     let ground_material2 = Rc::new(Lambertian::from_perlin(pertext2));
     spheres.push(Sphere::new(

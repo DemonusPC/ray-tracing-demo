@@ -60,10 +60,11 @@ pub struct PerlinTexture {
     perm_x: Vec<i32>,
     perm_y: Vec<i32>,
     perm_z: Vec<i32>,
+    scale: f64,
 }
 
 impl PerlinTexture {
-    pub fn new() -> Self {
+    pub fn new(scale: f64) -> Self {
         let mut ran_temp: Vec<f64> = vec![];
 
         for _ in 0..POINT_COUNT {
@@ -75,6 +76,7 @@ impl PerlinTexture {
             perm_x: perlin_generate_perm(),
             perm_y: perlin_generate_perm(),
             perm_z: perlin_generate_perm(),
+            scale,
         }
     }
 
@@ -83,11 +85,9 @@ impl PerlinTexture {
         let mut v = p.y() - p.y().floor();
         let mut w = p.z() - p.z().floor();
 
-        u = u * u * (3.0-2.0*u);
-        v = v * v * (3.0-2.0*v);
-        w = w * w * (3.0-2.0*w);
-
-
+        u = u * u * (3.0 - 2.0 * u);
+        v = v * v * (3.0 - 2.0 * v);
+        w = w * w * (3.0 - 2.0 * w);
 
         let i = p.x().floor() as i32;
         let j = p.y().floor() as i32;
@@ -112,7 +112,7 @@ impl PerlinTexture {
 
 impl Texture for PerlinTexture {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
-        return Vec3::new(1.0, 1.0, 1.0) * self.noise(p);
+        return Vec3::new(1.0, 1.0, 1.0) * self.noise(&(self.scale * *p));
     }
 }
 
