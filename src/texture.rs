@@ -122,7 +122,7 @@ impl PerlinTexture {
 
 impl Texture for PerlinTexture {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
-        return Vec3::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + self.turb(&(self.scale * *p)));
+        return Vec3::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + (self.scale * p.z() + 10.0 * self.turb(p)).sin());
     }
 }
 
