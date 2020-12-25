@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::random_double;
+use crate::{random_double, texture::ImageTexture};
 use crate::ray::Ray;
 use crate::texture::{SolidColor, Texture};
 use crate::vec3::Vec3;
@@ -37,6 +37,12 @@ impl Lambertian {
     }
 
     pub fn from_perlin(texture: PerlinTexture) -> Lambertian {
+        Lambertian {
+            albedo: Rc::new(texture),
+        }
+    }
+
+    pub fn from_image(texture: ImageTexture) -> Lambertian {
         Lambertian {
             albedo: Rc::new(texture),
         }

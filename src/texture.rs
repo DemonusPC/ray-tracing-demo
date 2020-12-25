@@ -1,3 +1,7 @@
+use std::fs::File;
+
+use png::Decoder;
+
 use crate::{
     utility::{random_double, random_int_from_values},
     vec3::Vec3,
@@ -167,4 +171,85 @@ fn perlin_interp(c: &mut [[[Vec3; 2]; 2]; 2], u: f64, v: f64, w: f64) -> f64 {
     }
 
     accum
+}
+
+
+pub struct ImageTexture {
+    data: Vec<u8>,
+    width: u32,
+    height: u32,
+    bytes_per_scanline: i32
+}
+
+fn clamp(value: f64, min: f64, max: f64) -> f64 {
+    if value < min {
+        return min;
+    }
+
+    if value > max {
+        return max;
+    }
+
+    value
+}
+
+impl ImageTexture {
+    pub fn new(filename: &str) -> Self {
+        let decoder = png::Decoder::new(File::open("data/map.png").unwrap());
+        let (info, mut reader) = decoder.read_info().unwrap();
+
+
+        let mut buf = vec![0; info.buffer_size()];
+
+        eprintln!("{}", info.line_size);
+
+        reader.next_frame(&mut buf).unwrap();
+
+        Self {
+            data: buf,
+            width: info.width,
+            height: info.height,
+            bytes_per_scanline: info.line_size as i32
+        }
+    }
+
+    pub fn print_data(&self) {
+        eprintln!("{}", &self.data.len());
+    }
+}
+
+impl Texture for ImageTexture {
+    fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
+        if self.data.is_empty() {
+            return Vec3::new(0.0, 1.0, 1.0)
+        }
+        
+        let uu = clamp(u, 0.0, 1.0);
+        let vv = 1.0 - clamp(v,0.0, 1.0);
+
+        let mut i = (uu * self.width as f64) as i32;
+        let mut j = (vv * self.height as f64) as i32;
+        
+        if i >= self.width as i32 {
+            i = self.width as i32 - 1;
+        }
+
+        if j >= self.height as i32 {
+            j = self.height as i32 - 1;
+        }
+
+        let color_scale = 1.0 / 255.0;
+
+        // The image gets returned as an array of bytes. The array is a flat representation of RGB values
+        // So 2 pixel image would look lime this:
+        // [0,0,0,80,125,0]
+        // So we need to find the position of the pixel and then map it to the vector to return
+        let position = (j * self.bytes_per_scanline + i * 3) as usize;
+
+        let r = color_scale * self.data[position] as f64;
+        let g = color_scale * self.data[position + 1] as f64;
+        let b = color_scale * self.data[position + 2] as f64;
+        
+        Vec3::new(r, g, b)
+    }
 }
