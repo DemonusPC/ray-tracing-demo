@@ -1,6 +1,5 @@
 use std::rc::Rc;
 
-use crate::{random_double, texture::ImageTexture};
 use crate::ray::Ray;
 use crate::texture::{SolidColor, Texture};
 use crate::vec3::Vec3;
@@ -8,6 +7,7 @@ use crate::{
     hit::HitRecord,
     texture::{CheckerTexture, PerlinTexture},
 };
+use crate::{random_double, texture::ImageTexture};
 
 pub trait Material {
     fn scatter(
