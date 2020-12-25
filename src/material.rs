@@ -17,6 +17,8 @@ pub trait Material {
         attenuation: &mut Vec3,
         scattered: &mut Ray,
     ) -> bool;
+
+    fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3;
 }
 
 pub struct Lambertian {
@@ -62,6 +64,10 @@ impl Material for Lambertian {
         *attenuation = self.albedo.value(rec.u(), rec.v(), &rec.p());
         true
     }
+
+    fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
+        Vec3::empty()
+    }
 }
 
 pub struct Metal {
@@ -98,6 +104,10 @@ impl Material for Metal {
         let result = Vec3::dot(&scattered.direction(), &rec.normal()) > 0.0;
 
         result
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
+        Vec3::empty()
     }
 }
 
@@ -158,5 +168,37 @@ impl Material for Dielectric {
         *scattered = Ray::new(&rec.p(), &refracted, ray_in.time());
 
         true
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
+        Vec3::empty()
+    }
+}
+
+struct DiffuseLight {
+    emit: Rc<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(color: Vec3) -> DiffuseLight {
+        DiffuseLight {
+            emit: Rc::new(SolidColor::new(color)),
+        }
+    }
+}
+
+impl Material for DiffuseLight {
+    fn scatter(
+        &self,
+        ray_in: &Ray,
+        rec: &HitRecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool {
+        false
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
+        self.emit.value(u, v, p)
     }
 }

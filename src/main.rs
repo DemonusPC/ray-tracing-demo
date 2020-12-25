@@ -28,34 +28,36 @@ use models::Sphere;
 use utility::{random_double, random_double_from_values};
 use world::World;
 
-fn ray_color(r: &Ray, world: &World, depth: i32) -> Vec3 {
+fn ray_color(r: &Ray, background: Vec3, world: &World, depth: i32) -> Vec3 {
     if depth <= 0 {
         return Vec3::empty();
     }
 
     let result = world.hit(r, 0.001, INFINITY);
 
-    if result.0 {
-        let mut scattered = Ray::empty();
-        let mut attenuation: Vec3 = Vec3::empty();
-
-        let scatter_result =
-            result
-                .1
-                .mat_ptr
-                .as_ref()
-                .scatter(r, &result.1, &mut attenuation, &mut scattered);
-
-        if scatter_result {
-            return attenuation * ray_color(&scattered, world, depth - 1);
-        }
-
-        return Vec3::empty();
+    if !result.0 {
+        return background;
     }
 
-    let unit_direction = Vec3::unit_vector(r.direction());
-    let t = 0.5 * (unit_direction.y() + 1.0);
-    (Vec3::new(1.0, 1.0, 1.0) * (1.0 - t)) + (Vec3::new(0.5, 0.7, 1.0) * t)
+    let mut scattered = Ray::empty();
+    let mut attenuation: Vec3 = Vec3::empty();
+    let emitted = result
+        .1
+        .mat_ptr
+        .emitted(result.1.u(), result.1.v(), &result.1.p());
+
+    let scatter_result =
+        result
+            .1
+            .mat_ptr
+            .as_ref()
+            .scatter(r, &result.1, &mut attenuation, &mut scattered);
+
+    if !scatter_result {
+        return emitted;
+    }
+
+    return emitted + attenuation * ray_color(&scattered, background, world, depth - 1);
 }
 
 fn random_scene_new() -> World {
@@ -226,6 +228,7 @@ fn main() {
 
     let dist_to_focus = 10.0;
     let aperture = 0.1;
+    let background = Vec3::empty();
 
     let cam = Camera::new(
         lookfrom,
@@ -249,7 +252,7 @@ fn main() {
 
                 let r = cam.get_ray(u, v);
                 // color += ray_color(&r, &world, max_depth);
-                color += ray_color(&r, &world, max_depth);
+                color += ray_color(&r, background, &world, max_depth);
             }
             color.write_color(samples_per_pixel);
         }
