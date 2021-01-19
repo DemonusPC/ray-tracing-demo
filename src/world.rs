@@ -1,14 +1,16 @@
-use crate::aabb::AABB;
 use crate::hit::HitAble;
 use crate::hit::HitRecord;
 use crate::material::Material;
 use crate::models::Sphere;
 use crate::ray::Ray;
+use crate::{aabb::AABB, models::XYRect};
 use std::rc::Rc;
 
 pub struct World {
     spheres: Vec<Sphere>,
     materials: Vec<Rc<dyn Material>>,
+    squares: Vec<XYRect>,
+    square_materials: Vec<Rc<dyn Material>>,
 }
 
 impl World {
@@ -16,11 +18,23 @@ impl World {
         World {
             spheres: vec![],
             materials: vec![],
+            squares: vec![],
+            square_materials: vec![],
         }
     }
 
-    pub fn new(spheres: Vec<Sphere>, materials: Vec<Rc<dyn Material>>) -> Self {
-        World { spheres, materials }
+    pub fn new(
+        spheres: Vec<Sphere>,
+        materials: Vec<Rc<dyn Material>>,
+        squares: Vec<XYRect>,
+        square_materials: Vec<Rc<dyn Material>>,
+    ) -> Self {
+        World {
+            spheres,
+            materials,
+            squares,
+            square_materials,
+        }
     }
 
     pub fn get(&self, index: usize) -> (&Sphere, &Rc<dyn Material>) {
@@ -35,6 +49,14 @@ impl World {
 
         for (sphere, mat) in self.spheres.iter().zip(self.materials.iter()) {
             if sphere.hit(r, t_min, closest_so_far, &mut temp_rec) {
+                hit_anything = true;
+                closest_so_far = temp_rec.t();
+                temp_rec.mat_ptr = mat.clone()
+            }
+        }
+
+        for (square, mat) in self.squares.iter().zip(self.square_materials.iter()) {
+            if square.hit(r, t_min, closest_so_far, &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t();
                 temp_rec.mat_ptr = mat.clone()

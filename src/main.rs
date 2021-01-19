@@ -21,10 +21,10 @@ use hit::HitAble;
 use std::f64::INFINITY;
 
 use camera::Camera;
-use material::Dielectric;
 use material::Lambertian;
 use material::Metal;
-use models::Sphere;
+use material::{Dielectric, DiffuseLight};
+use models::{Sphere, XYRect};
 use utility::{random_double, random_double_from_values};
 use world::World;
 
@@ -135,7 +135,7 @@ fn random_scene_new() -> World {
     ));
     materials.push(material3);
 
-    World::new(spheres, materials)
+    World::new(spheres, materials, vec![], vec![])
 }
 
 fn two_spheres_scene() -> World {
@@ -160,7 +160,7 @@ fn two_spheres_scene() -> World {
     ));
     materials.push(ground_material2);
 
-    World::new(spheres, materials)
+    World::new(spheres, materials, vec![], vec![])
 }
 
 fn two_perlin_spheres() -> World {
@@ -187,7 +187,7 @@ fn two_perlin_spheres() -> World {
     ));
     materials.push(ground_material2);
 
-    World::new(spheres, materials)
+    World::new(spheres, materials, vec![], vec![])
 }
 
 fn earth() -> World {
@@ -204,14 +204,47 @@ fn earth() -> World {
     ));
     materials.push(ground_material);
 
-    World::new(spheres, materials)
+    World::new(spheres, materials, vec![], vec![])
+}
+
+fn simple_light() -> World {
+    let mut spheres: Vec<Sphere> = vec![];
+    let mut materials: Vec<Rc<dyn Material>> = vec![];
+    let mut squares: Vec<XYRect> = vec![];
+    let mut square_materials: Vec<Rc<dyn Material>> = vec![];
+
+    let pertext1 = PerlinTexture::new(4.0);
+
+    let ground_material = Rc::new(Lambertian::from_perlin(pertext1));
+    spheres.push(Sphere::new(
+        Vec3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        ground_material.clone(),
+    ));
+    materials.push(ground_material);
+
+    let pertext2 = PerlinTexture::new(4.0);
+
+    let ground_material2 = Rc::new(Lambertian::from_perlin(pertext2));
+    spheres.push(Sphere::new(
+        Vec3::new(0.0, 2.0, 0.0),
+        2.0,
+        ground_material2.clone(),
+    ));
+    materials.push(ground_material2);
+
+    let diff_light = Rc::new(DiffuseLight::new(Vec3::new(4.0, 4.0, 4.0)));
+    squares.push(XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, diff_light.clone()));
+    square_materials.push(diff_light);
+
+    World::new(spheres, materials, squares, square_materials)
 }
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 100;
+    let samples_per_pixel = 400;
     let max_depth = 50;
 
     print!("P3\n{} {}\n255\n", image_width, image_height);
@@ -220,10 +253,11 @@ fn main() {
     // let world = random_scene_new();
     // let world = two_spheres_scene();
     // let world = two_perlin_spheres();
-    let world = earth();
+    // let world = earth();
+    let world = simple_light();
 
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-    let lookat = Vec3::new(0.0, 0.0, 0.0);
+    let lookfrom = Vec3::new(26.0, 3.0, 6.0);
+    let lookat = Vec3::new(0.0, 2.0, 0.0);
     let vup = Vec3::new(0.0, 1.0, 0.0);
 
     let dist_to_focus = 10.0;

@@ -138,6 +138,8 @@ mod tests {
             Vec3::new(2.0, 0.0, 0.0),
             Rc::new(Lambertian::new(Vec3::empty())),
             0.0,
+            0.0,
+            0.0,
             true,
         );
         equality(&result.p(), 1.0, 2.0, 3.0);
@@ -150,6 +152,8 @@ mod tests {
             Vec3::new(1.0, 2.0, 3.0),
             Vec3::new(2.0, 0.0, 0.0),
             Rc::new(Lambertian::new(Vec3::empty())),
+            0.0,
+            0.0,
             0.0,
             true,
         );
@@ -164,6 +168,8 @@ mod tests {
             Vec3::new(1.0, 2.0, 3.0),
             Vec3::new(2.0, 0.0, 0.0),
             Rc::new(Lambertian::new(Vec3::empty())),
+            0.0,
+            0.0,
             0.0,
             true,
         );
