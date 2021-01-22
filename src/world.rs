@@ -7,67 +7,55 @@ use crate::{aabb::AABB, models::XYRect};
 use std::rc::Rc;
 
 pub struct World {
-    spheres: Vec<Sphere>,
+    objects: Vec<Box<dyn HitAble>>,
     materials: Vec<Rc<dyn Material>>,
-    squares: Vec<XYRect>,
-    square_materials: Vec<Rc<dyn Material>>,
 }
 
 impl World {
     pub fn empty() -> Self {
         World {
-            spheres: vec![],
+            objects: vec![],
             materials: vec![],
-            squares: vec![],
-            square_materials: vec![],
         }
     }
 
     pub fn new(
-        spheres: Vec<Sphere>,
+        objects: Vec<Box<dyn HitAble>>,
         materials: Vec<Rc<dyn Material>>,
-        squares: Vec<XYRect>,
-        square_materials: Vec<Rc<dyn Material>>,
     ) -> Self {
         World {
-            spheres,
-            materials,
-            squares,
-            square_materials,
+            objects,
+            materials
         }
     }
 
-    pub fn get(&self, index: usize) -> (&Sphere, &Rc<dyn Material>) {
-        (&self.spheres[index], &self.materials[index])
+    pub fn get(&self, index: usize) -> (&Box<dyn HitAble>, &Rc<dyn Material>) {
+        (&self.objects[index], &self.materials[index])
     }
 
-    pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> (bool, HitRecord) {
+    pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let mut temp_rec = HitRecord::empty();
 
         let mut hit_anything = false;
         let mut closest_so_far = t_max;
 
-        for (sphere, mat) in self.spheres.iter().zip(self.materials.iter()) {
-            if sphere.hit(r, t_min, closest_so_far, &mut temp_rec) {
+        for (object, mat) in self.objects.iter().zip(self.materials.iter()) {
+            if object.hit(r, t_min, closest_so_far, &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t();
-                temp_rec.mat_ptr = mat.clone()
+                temp_rec.set_id(object.id())
             }
         }
 
-        for (square, mat) in self.squares.iter().zip(self.square_materials.iter()) {
-            if square.hit(r, t_min, closest_so_far, &mut temp_rec) {
-                hit_anything = true;
-                closest_so_far = temp_rec.t();
-                temp_rec.mat_ptr = mat.clone()
-            }
+        match hit_anything {
+            true => Some(temp_rec),
+            false => Option::None
         }
-
-        (hit_anything, temp_rec)
+        // (hit_anything, temp_rec)
     }
 
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
-        if self.spheres.is_empty() {
+        if self.objects.is_empty() {
             return false;
         }
 
@@ -75,16 +63,16 @@ impl World {
 
         let mut first_box = true;
 
-        for object in self.spheres.as_slice() {
-            let mut temp_box = AABB::empty();
-            if !object.bounding_box(time0, time1, &mut temp_box) {
+        for object in self.objects.as_slice() {
+            let temp_box = object.bounding_box(time0, time1);
+            if temp_box.is_none() {
                 return false;
             }
 
             *output_box = if first_box {
-                temp_box
+                temp_box.unwrap()
             } else {
-                AABB::surrounding_box_mut(output_box, temp_box)
+                AABB::surrounding_box_mut(output_box, temp_box.unwrap())
             };
 
             first_box = false;

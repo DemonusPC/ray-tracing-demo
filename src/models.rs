@@ -8,15 +8,15 @@ use std::rc::Rc;
 pub struct Sphere {
     center: Vec3,
     radius: f64,
-    mat_prt: Rc<dyn Material>,
+    id: usize
 }
 
 impl Sphere {
-    pub fn new(cen: Vec3, r: f64, mat_ptr: Rc<dyn Material>) -> Sphere {
+    pub fn new(cen: Vec3, r: f64, id: usize) -> Sphere {
         Sphere {
             center: cen,
             radius: r,
-            mat_prt: mat_ptr,
+            id
         }
     }
 
@@ -58,7 +58,7 @@ impl HitAble for Sphere {
                 let outward_normal = (rec.p() - self.center) / self.radius;
                 rec.set_face_normal(r, &outward_normal);
                 rec.set_uv(Sphere::get_sphere_uv(&outward_normal, rec.u(), rec.v()));
-                rec.mat_ptr = self.mat_prt.clone();
+                rec.set_id(Some(self.id));
                 return true;
             }
 
@@ -70,7 +70,7 @@ impl HitAble for Sphere {
                 let outward_normal = (rec.p() - self.center) / self.radius;
                 rec.set_face_normal(r, &outward_normal);
                 rec.set_uv(Sphere::get_sphere_uv(&outward_normal, rec.u(), rec.v()));
-                rec.mat_ptr = self.mat_prt.clone();
+                rec.set_id(Some(self.id));
                 return true;
             }
         }
@@ -78,12 +78,14 @@ impl HitAble for Sphere {
         false
     }
 
-    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
         let a = self.center() - Vec3::new(self.radius(), self.radius(), self.radius());
         let b = self.center() + Vec3::new(self.radius(), self.radius(), self.radius());
-        *output_box = AABB::new(a, b);
+        Some(AABB::new(a, b))
+    }
 
-        true
+    fn id(&self) -> Option<usize> {
+        Some(self.id)
     }
 }
 
@@ -93,7 +95,7 @@ pub struct MovingSphere {
     time0: f64,
     time1: f64,
     radius: f64,
-    mat_ptr: Rc<dyn Material>,
+    id: usize
 }
 
 impl MovingSphere {
@@ -103,7 +105,7 @@ impl MovingSphere {
         time0: f64,
         time1: f64,
         radius: f64,
-        mat_ptr: Rc<dyn Material>,
+        id: usize
     ) -> Self {
         Self {
             center0,
@@ -111,7 +113,7 @@ impl MovingSphere {
             time0,
             time1,
             radius,
-            mat_ptr,
+            id
         }
     }
 
@@ -139,7 +141,7 @@ impl HitAble for MovingSphere {
                 rec.set_p(r.at(rec.t()));
                 let outward_normal = (rec.p() - self.center(r.time())) / self.radius;
                 rec.set_face_normal(r, &outward_normal);
-                rec.mat_ptr = self.mat_ptr.clone();
+                rec.set_id(Some(self.id));
                 return true;
             }
 
@@ -150,14 +152,14 @@ impl HitAble for MovingSphere {
                 rec.set_p(r.at(rec.t()));
                 let outward_normal = (rec.p() - self.center(r.time())) / self.radius;
                 rec.set_face_normal(r, &outward_normal);
-                rec.mat_ptr = self.mat_ptr.clone();
+                rec.set_id(Some(self.id));
                 return true;
             }
         }
 
         false
     }
-    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
         let a0 = self.center(time0) - Vec3::new(self.radius, self.radius, self.radius);
         let b0 = self.center(time0) + Vec3::new(self.radius, self.radius, self.radius);
         let box0 = AABB::new(a0, b0);
@@ -167,9 +169,11 @@ impl HitAble for MovingSphere {
 
         let box1 = AABB::new(a1, b1);
 
-        *output_box = AABB::surrounding_box(box0, box1);
+        Some(AABB::surrounding_box(box0, box1))
+    }
 
-        true
+    fn id(&self) -> Option<usize> {
+        Some(self.id)
     }
 }
 
@@ -179,18 +183,18 @@ pub struct XYRect {
     y0: f64,
     y1: f64,
     k: f64,
-    mat_ptr: Rc<dyn Material>,
+    id: usize
 }
 
 impl XYRect {
-    pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k: f64, mat_ptr: Rc<dyn Material>) -> XYRect {
+    pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k: f64, id: usize) -> XYRect {
         XYRect {
             x0,
             x1,
             y0,
             y1,
             k,
-            mat_ptr,
+            id
         }
     }
 }
@@ -218,17 +222,20 @@ impl HitAble for XYRect {
         let outward_normal = Vec3::new(0.0, 0.0, 1.0);
 
         rec.set_face_normal(r, &outward_normal);
-        rec.mat_ptr = self.mat_ptr.clone();
         rec.set_p(r.at(t));
+        rec.set_id(Some(self.id));
 
         true
     }
 
-    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
-        *output_box = aabb::AABB::new(
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
+        Some(aabb::AABB::new(
             Vec3::new(self.x0, self.y0, self.k - 0.0001),
             Vec3::new(self.x1, self.y1, self.k + 0.0001),
-        );
-        true
+        ))
+    }
+    
+    fn id(&self) -> Option<usize> {
+        Some(self.id)
     }
 }

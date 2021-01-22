@@ -10,6 +10,8 @@ mod utility;
 mod vec3;
 mod world;
 
+use std::time::{Duration, SystemTime};
+
 use crate::material::Material;
 use ray::Ray;
 use texture::{CheckerTexture, ImageTexture, PerlinTexture};
@@ -35,25 +37,26 @@ fn ray_color(r: &Ray, background: Vec3, world: &World, depth: i32) -> Vec3 {
 
     let result = world.hit(r, 0.001, INFINITY);
 
-    if !result.0 {
+    if result.is_none() {
         return background;
     }
 
     let mut scattered = Ray::empty();
     let mut attenuation: Vec3 = Vec3::empty();
-    let emitted = result
-        .1
-        .mat_ptr
-        .emitted(result.1.u(), result.1.v(), &result.1.p());
 
-    let scatter_result =
-        result
-            .1
-            .mat_ptr
-            .as_ref()
-            .scatter(r, &result.1, &mut attenuation, &mut scattered);
+    let hit_res = result.unwrap();
 
-    if !scatter_result {
+    let hit_index = hit_res.id().unwrap();
+
+    let hit_pair = world.get(hit_index);
+
+    let emitted = hit_pair.1.emitted(hit_res.u(), hit_res.v(), &hit_res.p());
+
+
+    let scatter = hit_pair.1.scatter(r, &hit_res, &mut attenuation, &mut scattered);
+
+
+    if !scatter {
         return emitted;
     }
 
@@ -61,20 +64,24 @@ fn ray_color(r: &Ray, background: Vec3, world: &World, depth: i32) -> Vec3 {
 }
 
 fn random_scene_new() -> World {
-    let mut spheres: Vec<Sphere> = vec![];
+    let mut objects: Vec<Box<dyn HitAble>> = vec![];
     let mut materials: Vec<Rc<dyn Material>> = vec![];
+
+    let mut id = 0;
 
     // let ground_material = Rc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5)));
 
     let checker = CheckerTexture::new(Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9));
 
     let ground_material = Rc::new(Lambertian::from_checker(checker));
-    spheres.push(Sphere::new(
+    objects.push(Box::new(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,
-        ground_material.clone(),
-    ));
+        id
+    )));
     materials.push(ground_material);
+
+    id += 1;
 
     for a in -11..11 {
         for b in -11..11 {
@@ -91,156 +98,183 @@ fn random_scene_new() -> World {
                     // diffuse
                     let albedo = Vec3::random() * Vec3::random();
                     let sphere_material = Rc::new(Lambertian::new(albedo));
-                    spheres.push(Sphere::new(center, 0.2, sphere_material.clone()));
+                    objects.push(Box::new(Sphere::new(center, 0.2, id)));
                     materials.push(sphere_material);
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Vec3::random_from_values(0.5, 1.0);
                     let fuzz = random_double_from_values(0.0, 0.5);
                     let sphere_material = Rc::new(Metal::new(albedo, fuzz));
-                    spheres.push(Sphere::new(center, 0.2, sphere_material.clone()));
+                    objects.push(Box::new(Sphere::new(center, 0.2, id)));
                     materials.push(sphere_material);
                 } else {
                     // glass
 
                     let sphere_material = Rc::new(Dielectric::new(1.5));
-                    spheres.push(Sphere::new(center, 0.2, sphere_material.clone()));
+                    objects.push(Box::new(Sphere::new(center, 0.2, id)));
                     materials.push(sphere_material);
                 }
+                id += 1;
             }
         }
     }
 
     let material1 = Rc::new(Dielectric::new(1.5));
-    spheres.push(Sphere::new(
+    objects.push(Box::new(Sphere::new(
         Vec3::new(0.0, 1.0, 0.0),
         1.0,
-        material1.clone(),
-    ));
+        id
+    )));
     materials.push(material1);
 
+    id += 1;
+
     let material2 = Rc::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1)));
-    spheres.push(Sphere::new(
+    objects.push(Box::new(Sphere::new(
         Vec3::new(-4.0, 1.0, 0.0),
         1.0,
-        material2.clone(),
-    ));
+        id
+    )));
     materials.push(material2);
 
+    id += 1;
+
     let material3 = Rc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0));
-    spheres.push(Sphere::new(
+    objects.push(Box::new(Sphere::new(
         Vec3::new(4.0, 1.0, 0.0),
         1.0,
-        material3.clone(),
-    ));
+        id
+    )));
     materials.push(material3);
 
-    World::new(spheres, materials, vec![], vec![])
+    id += 1;
+
+    World::new(objects, materials)
 }
 
-fn two_spheres_scene() -> World {
-    let mut spheres: Vec<Sphere> = vec![];
-    let mut materials: Vec<Rc<dyn Material>> = vec![];
+// fn two_spheres_scene() -> World {
+//     let mut spheres: Vec<Sphere> = vec![];
+//     let mut materials: Vec<Rc<dyn Material>> = vec![];
 
-    let checker = CheckerTexture::new(Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9));
-    let ground_material = Rc::new(Lambertian::from_checker(checker));
-    spheres.push(Sphere::new(
-        Vec3::new(0.0, -10.0, 0.0),
-        10.0,
-        ground_material.clone(),
-    ));
-    materials.push(ground_material);
+//     let checker = CheckerTexture::new(Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9));
+//     let ground_material = Rc::new(Lambertian::from_checker(checker));
+//     spheres.push(Sphere::new(
+//         Vec3::new(0.0, -10.0, 0.0),
+//         10.0,
+//         ground_material.clone(),
+//     ));
+//     materials.push(ground_material);
 
-    let checker2 = CheckerTexture::new(Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9));
-    let ground_material2 = Rc::new(Lambertian::from_checker(checker2));
-    spheres.push(Sphere::new(
-        Vec3::new(0.0, 10.0, 0.0),
-        10.0,
-        ground_material2.clone(),
-    ));
-    materials.push(ground_material2);
+//     let checker2 = CheckerTexture::new(Vec3::new(0.2, 0.3, 0.1), Vec3::new(0.9, 0.9, 0.9));
+//     let ground_material2 = Rc::new(Lambertian::from_checker(checker2));
+//     spheres.push(Sphere::new(
+//         Vec3::new(0.0, 10.0, 0.0),
+//         10.0,
+//         ground_material2.clone(),
+//     ));
+//     materials.push(ground_material2);
 
-    World::new(spheres, materials, vec![], vec![])
-}
+//     World::new(spheres, materials, vec![], vec![])
+// }
 
-fn two_perlin_spheres() -> World {
-    let mut spheres: Vec<Sphere> = vec![];
-    let mut materials: Vec<Rc<dyn Material>> = vec![];
+// fn two_perlin_spheres() -> World {
+//     let mut spheres: Vec<Sphere> = vec![];
+//     let mut materials: Vec<Rc<dyn Material>> = vec![];
 
-    let pertext1 = PerlinTexture::new(4.0);
+//     let pertext1 = PerlinTexture::new(4.0);
 
-    let ground_material = Rc::new(Lambertian::from_perlin(pertext1));
-    spheres.push(Sphere::new(
-        Vec3::new(0.0, -1000.0, 0.0),
-        1000.0,
-        ground_material.clone(),
-    ));
-    materials.push(ground_material);
+//     let ground_material = Rc::new(Lambertian::from_perlin(pertext1));
+//     spheres.push(Sphere::new(
+//         Vec3::new(0.0, -1000.0, 0.0),
+//         1000.0,
+//         ground_material.clone(),
+//     ));
+//     materials.push(ground_material);
 
-    let pertext2 = PerlinTexture::new(4.0);
+//     let pertext2 = PerlinTexture::new(4.0);
 
-    let ground_material2 = Rc::new(Lambertian::from_perlin(pertext2));
-    spheres.push(Sphere::new(
-        Vec3::new(0.0, 2.0, 0.0),
-        2.0,
-        ground_material2.clone(),
-    ));
-    materials.push(ground_material2);
+//     let ground_material2 = Rc::new(Lambertian::from_perlin(pertext2));
+//     spheres.push(Sphere::new(
+//         Vec3::new(0.0, 2.0, 0.0),
+//         2.0,
+//         ground_material2.clone(),
+//     ));
+//     materials.push(ground_material2);
 
-    World::new(spheres, materials, vec![], vec![])
-}
+//     World::new(spheres, materials, vec![], vec![])
+// }
 
 fn earth() -> World {
-    let mut spheres: Vec<Sphere> = vec![];
+    let mut objects: Vec<Box<dyn HitAble>> = vec![];
     let mut materials: Vec<Rc<dyn Material>> = vec![];
+
+    let mut id = 0;
 
     let texture = ImageTexture::new("");
 
     let ground_material = Rc::new(Lambertian::from_image(texture));
-    spheres.push(Sphere::new(
+    objects.push(Box::new(Sphere::new(
         Vec3::new(0.0, 0.0, 0.0),
         2.0,
-        ground_material.clone(),
-    ));
+        id,
+    )));
     materials.push(ground_material);
 
-    World::new(spheres, materials, vec![], vec![])
+    id += 1;
+
+    let diff_light = Rc::new(DiffuseLight::new(Vec3::new(20.0, 20.0, 20.0)));
+    objects.push(Box::new(Sphere::new(
+        Vec3::new(3.0, 0.0, -3.0),
+        1.0,
+        id,
+    )));
+    materials.push(diff_light);
+
+
+    World::new(objects, materials)
 }
 
 fn simple_light() -> World {
-    let mut spheres: Vec<Sphere> = vec![];
+    let mut objects: Vec<Box<dyn HitAble>> = vec![];
     let mut materials: Vec<Rc<dyn Material>> = vec![];
-    let mut squares: Vec<XYRect> = vec![];
-    let mut square_materials: Vec<Rc<dyn Material>> = vec![];
+
+    let mut id = 0;
 
     let pertext1 = PerlinTexture::new(4.0);
 
     let ground_material = Rc::new(Lambertian::from_perlin(pertext1));
-    spheres.push(Sphere::new(
+    objects.push(Box::new(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,
-        ground_material.clone(),
-    ));
+        id as usize
+    )));
     materials.push(ground_material);
+    
+    id += 1;
 
     let pertext2 = PerlinTexture::new(4.0);
 
     let ground_material2 = Rc::new(Lambertian::from_perlin(pertext2));
-    spheres.push(Sphere::new(
+    objects.push(Box::new(Sphere::new(
         Vec3::new(0.0, 2.0, 0.0),
         2.0,
-        ground_material2.clone(),
-    ));
+        id as usize
+    )));
     materials.push(ground_material2);
 
-    let diff_light = Rc::new(DiffuseLight::new(Vec3::new(4.0, 4.0, 4.0)));
-    squares.push(XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, diff_light.clone()));
-    square_materials.push(diff_light);
+    id += 1;
 
-    World::new(spheres, materials, squares, square_materials)
+    let diff_light = Rc::new(DiffuseLight::new(Vec3::new(4.0, 4.0, 4.0)));
+    objects.push(Box::new(XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, id as usize)));
+    materials.push(diff_light);
+
+
+    World::new(objects, materials)
 }
 
 fn main() {
+    let now = SystemTime::now();
+
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
@@ -249,7 +283,6 @@ fn main() {
 
     print!("P3\n{} {}\n255\n", image_width, image_height);
 
-    // let world = random_scene();
     // let world = random_scene_new();
     // let world = two_spheres_scene();
     // let world = two_perlin_spheres();
@@ -293,4 +326,14 @@ fn main() {
     }
 
     eprint!("done");
+    match now.elapsed() {
+        Ok(elapsed) => {
+            // it prints '2'
+            eprintln!("Time taken: {} seconds", elapsed.as_secs());
+        }
+        Err(e) => {
+            // an error occurred!
+            eprintln!("Error: {:?}", e);
+        }
+    }
 }

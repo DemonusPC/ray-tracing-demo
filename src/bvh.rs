@@ -4,9 +4,10 @@ use crate::{aabb::AABB, world::World};
 use std::rc::Rc;
 
 pub struct BvhNode {
-    left: Rc<HitAble>,
-    right: Rc<HitAble>,
+    left: Box<BvhNode>,
+    right: Box<BvhNode>,
     node_box: AABB,
+    id: Option<usize>
 }
 
 impl BvhNode {}
@@ -30,8 +31,11 @@ impl HitAble for BvhNode {
         hit_left || hit_right
     }
 
-    fn bounding_box(&self, _: f64, _: f64, output_box: &mut crate::aabb::AABB) -> bool {
-        *output_box = self.node_box;
-        true
+    fn bounding_box(&self, _: f64, _: f64) -> Option<AABB> {
+        Some(self.node_box)
+    }
+
+    fn id(&self) -> Option<usize> {
+        self.id
     }
 }
