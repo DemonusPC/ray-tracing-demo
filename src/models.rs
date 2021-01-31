@@ -8,7 +8,7 @@ use std::rc::Rc;
 pub struct Sphere {
     center: Vec3,
     radius: f64,
-    id: usize
+    id: usize,
 }
 
 impl Sphere {
@@ -16,7 +16,7 @@ impl Sphere {
         Sphere {
             center: cen,
             radius: r,
-            id
+            id,
         }
     }
 
@@ -95,7 +95,7 @@ pub struct MovingSphere {
     time0: f64,
     time1: f64,
     radius: f64,
-    id: usize
+    id: usize,
 }
 
 impl MovingSphere {
@@ -105,7 +105,7 @@ impl MovingSphere {
         time0: f64,
         time1: f64,
         radius: f64,
-        id: usize
+        id: usize,
     ) -> Self {
         Self {
             center0,
@@ -113,7 +113,7 @@ impl MovingSphere {
             time0,
             time1,
             radius,
-            id
+            id,
         }
     }
 
@@ -183,7 +183,7 @@ pub struct XYRect {
     y0: f64,
     y1: f64,
     k: f64,
-    id: usize
+    id: usize,
 }
 
 impl XYRect {
@@ -194,7 +194,7 @@ impl XYRect {
             y0,
             y1,
             k,
-            id
+            id,
         }
     }
 }
@@ -234,7 +234,7 @@ impl HitAble for XYRect {
             Vec3::new(self.x1, self.y1, self.k + 0.0001),
         ))
     }
-    
+
     fn id(&self) -> Option<usize> {
         Some(self.id)
     }

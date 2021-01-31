@@ -201,7 +201,6 @@ impl ImageTexture {
 
         let mut buf = vec![0; info.buffer_size()];
 
-        eprintln!("{}", info.line_size);
 
         reader.next_frame(&mut buf).unwrap();
 
@@ -213,9 +212,6 @@ impl ImageTexture {
         }
     }
 
-    pub fn print_data(&self) {
-        eprintln!("{}", &self.data.len());
-    }
 }
 
 impl Texture for ImageTexture {

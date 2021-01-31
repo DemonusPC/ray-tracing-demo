@@ -35,16 +35,15 @@ fn ray_color(r: &Ray, background: Vec3, world: &World, depth: i32) -> Vec3 {
         return Vec3::empty();
     }
 
-    let result = world.hit(r, 0.001, INFINITY);
-
-    if result.is_none() {
-        return background;
-    }
+    let hit_res = match world.hit(r, 0.001, INFINITY) {
+        Some(v) => v,
+        None => {
+            return background;
+        }
+    };
 
     let mut scattered = Ray::empty();
     let mut attenuation: Vec3 = Vec3::empty();
-
-    let hit_res = result.unwrap();
 
     let hit_index = hit_res.id().unwrap();
 
@@ -52,8 +51,9 @@ fn ray_color(r: &Ray, background: Vec3, world: &World, depth: i32) -> Vec3 {
 
     let emitted = hit_pair.1.emitted(hit_res.u(), hit_res.v(), &hit_res.p());
 
-
-    let scatter = hit_pair.1.scatter(r, &hit_res, &mut attenuation, &mut scattered);
+    let scatter = hit_pair
+        .1
+        .scatter(r, &hit_res, &mut attenuation, &mut scattered);
 
 
     if !scatter {
@@ -77,7 +77,7 @@ fn random_scene_new() -> World {
     objects.push(Box::new(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,
-        id
+        id,
     )));
     materials.push(ground_material);
 
@@ -120,31 +120,19 @@ fn random_scene_new() -> World {
     }
 
     let material1 = Rc::new(Dielectric::new(1.5));
-    objects.push(Box::new(Sphere::new(
-        Vec3::new(0.0, 1.0, 0.0),
-        1.0,
-        id
-    )));
+    objects.push(Box::new(Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, id)));
     materials.push(material1);
 
     id += 1;
 
     let material2 = Rc::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1)));
-    objects.push(Box::new(Sphere::new(
-        Vec3::new(-4.0, 1.0, 0.0),
-        1.0,
-        id
-    )));
+    objects.push(Box::new(Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, id)));
     materials.push(material2);
 
     id += 1;
 
     let material3 = Rc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0));
-    objects.push(Box::new(Sphere::new(
-        Vec3::new(4.0, 1.0, 0.0),
-        1.0,
-        id
-    )));
+    objects.push(Box::new(Sphere::new(Vec3::new(4.0, 1.0, 0.0), 1.0, id)));
     materials.push(material3);
 
     id += 1;
@@ -213,23 +201,14 @@ fn earth() -> World {
     let texture = ImageTexture::new("");
 
     let ground_material = Rc::new(Lambertian::from_image(texture));
-    objects.push(Box::new(Sphere::new(
-        Vec3::new(0.0, 0.0, 0.0),
-        2.0,
-        id,
-    )));
+    objects.push(Box::new(Sphere::new(Vec3::new(0.0, 0.0, 0.0), 2.0, id)));
     materials.push(ground_material);
 
     id += 1;
 
     let diff_light = Rc::new(DiffuseLight::new(Vec3::new(20.0, 20.0, 20.0)));
-    objects.push(Box::new(Sphere::new(
-        Vec3::new(3.0, 0.0, -3.0),
-        1.0,
-        id,
-    )));
+    objects.push(Box::new(Sphere::new(Vec3::new(3.0, 0.0, -3.0), 1.0, id)));
     materials.push(diff_light);
-
 
     World::new(objects, materials)
 }
@@ -246,19 +225,20 @@ fn simple_light() -> World {
     objects.push(Box::new(Sphere::new(
         Vec3::new(0.0, -1000.0, 0.0),
         1000.0,
-        id as usize
+        id as usize,
     )));
     materials.push(ground_material);
-    
+
     id += 1;
 
     let pertext2 = PerlinTexture::new(4.0);
 
-    let ground_material2 = Rc::new(Lambertian::from_perlin(pertext2));
+    // let ground_material2 = Rc::new(Lambertian::from_perlin(pertext2));
+    let ground_material2 = Rc::new(Lambertian::new(Vec3::new(1.0, 0.0, 0.0)));
     objects.push(Box::new(Sphere::new(
         Vec3::new(0.0, 2.0, 0.0),
         2.0,
-        id as usize
+        id as usize,
     )));
     materials.push(ground_material2);
 
@@ -266,8 +246,12 @@ fn simple_light() -> World {
 
     let diff_light = Rc::new(DiffuseLight::new(Vec3::new(4.0, 4.0, 4.0)));
     objects.push(Box::new(XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, id as usize)));
+    // objects.push(Box::new(Sphere::new(
+    //     Vec3::new(4.0, 4.0, 5.0),
+    //     5.0,
+    //     id as usize
+    // )));
     materials.push(diff_light);
-
 
     World::new(objects, materials)
 }
@@ -318,7 +302,6 @@ fn main() {
                 let v = (j as f64 + random_double()) / image_height as f64;
 
                 let r = cam.get_ray(u, v);
-                // color += ray_color(&r, &world, max_depth);
                 color += ray_color(&r, background, &world, max_depth);
             }
             color.write_color(samples_per_pixel);

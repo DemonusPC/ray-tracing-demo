@@ -37,7 +37,7 @@ impl AABB {
             let mut t1 = (self.max()[a] - r.origin()[a]) * inv_d;
 
             if inv_d < 0.0 {
-                let s = t1;
+                let s = t0;
                 t0 = t1;
                 t1 = s;
             }

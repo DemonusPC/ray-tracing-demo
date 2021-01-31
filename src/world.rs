@@ -1,31 +1,25 @@
-use crate::hit::HitAble;
+use crate::aabb::AABB;
 use crate::hit::HitRecord;
 use crate::material::Material;
-use crate::models::Sphere;
 use crate::ray::Ray;
-use crate::{aabb::AABB, models::XYRect};
+use crate::{bvh::BvhNode, hit::HitAble};
 use std::rc::Rc;
 
 pub struct World {
     objects: Vec<Box<dyn HitAble>>,
     materials: Vec<Rc<dyn Material>>,
+    node: BvhNode,
 }
 
 impl World {
-    pub fn empty() -> Self {
-        World {
-            objects: vec![],
-            materials: vec![],
-        }
-    }
+    pub fn new(mut objects: Vec<Box<dyn HitAble>>, materials: Vec<Rc<dyn Material>>) -> Self {
+        let tnode = BvhNode::new_from_list(&mut objects, 0.0, 10.0);
 
-    pub fn new(
-        objects: Vec<Box<dyn HitAble>>,
-        materials: Vec<Rc<dyn Material>>,
-    ) -> Self {
+        let node = BvhNode::new_from_list(&mut objects, 0.0, 10.0);
         World {
             objects,
-            materials
+            materials,
+            node,
         }
     }
 
@@ -36,21 +30,28 @@ impl World {
     pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let mut temp_rec = HitRecord::empty();
 
+        // let hit = self.node.hit(r, t_min, t_max, &mut temp_rec, &self);
+
+        // match hit {
+        //     true => Some(temp_rec),
+        //     false => Option::None,
+        // }
+
         let mut hit_anything = false;
         let mut closest_so_far = t_max;
 
-        for (object, mat) in self.objects.iter().zip(self.materials.iter()) {
+        for object in self.objects.iter() {
             if object.hit(r, t_min, closest_so_far, &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t();
                 temp_rec.set_id(object.id())
             }
         }
-
         match hit_anything {
             true => Some(temp_rec),
             false => Option::None
         }
+
         // (hit_anything, temp_rec)
     }
 

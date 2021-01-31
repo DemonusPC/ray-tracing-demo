@@ -9,7 +9,7 @@ pub struct HitRecord {
     u: f64,
     v: f64,
     front_face: bool,
-    id: Option<usize>
+    id: Option<usize>,
 }
 
 impl HitRecord {
@@ -20,7 +20,7 @@ impl HitRecord {
         u: f64,
         v: f64,
         front_face: bool,
-        id: Option<usize>
+        id: Option<usize>,
     ) -> HitRecord {
         HitRecord {
             p: p,
@@ -29,7 +29,7 @@ impl HitRecord {
             u,
             v,
             front_face: front_face,
-            id
+            id,
         }
     }
 
@@ -41,7 +41,7 @@ impl HitRecord {
             u: 0.0,
             v: 0.0,
             front_face: true,
-            id: Option::None
+            id: Option::None,
         }
     }
 
@@ -145,7 +145,7 @@ mod tests {
             0.0,
             0.0,
             true,
-            Option::None
+            Option::None,
         );
         equality(&result.p(), 1.0, 2.0, 3.0);
         equality(&result.normal(), 2.00, 0.0, 0.0);
@@ -160,7 +160,7 @@ mod tests {
             0.0,
             0.0,
             true,
-            Option::None
+            Option::None,
         );
         equality(&result.p(), 1.0, 2.0, 3.0);
         result.set_p(Vec3::new(50.0, 10.0, 20.0));
@@ -176,7 +176,7 @@ mod tests {
             0.0,
             0.0,
             true,
-            Option::None
+            Option::None,
         );
         equality(&result.normal(), 2.00, 0.0, 0.0);
         result.set_normal(Vec3::new(50.0, 10.0, 20.0));
