@@ -239,3 +239,130 @@ impl HitAble for XYRect {
         Some(self.id)
     }
 }
+
+pub struct XZRect {
+    x0: f64,
+    x1: f64,
+    z0: f64,
+    z1: f64,
+    k: f64,
+    id: usize,
+}
+
+impl XZRect {
+    pub fn new(x0: f64, x1: f64, z0: f64, z1: f64, k: f64, id: usize) -> XZRect {
+        XZRect {
+            x0,
+            x1,
+            z0,
+            z1,
+            k,
+            id,
+        }
+    }
+}
+
+impl HitAble for XZRect {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        let t = (self.k - r.origin().y()) / r.direction().y();
+
+        if t < t_min || t > t_max {
+            return false;
+        }
+
+        let x = r.origin().x() + t * r.direction().x();
+        let z = r.origin().z() + t * r.direction().z();
+
+        if x < self.x0 || x > self.x1 || z < self.z0 || z > self.z1 {
+            return false;
+        }
+
+        rec.set_u((x - self.x0) / (self.x1 - self.x0));
+        rec.set_u((z - self.z0) / (self.z1 - self.z0));
+
+        rec.set_t(t);
+
+        let outward_normal = Vec3::new(0.0, 1.0, 0.0);
+
+        rec.set_face_normal(r, &outward_normal);
+        rec.set_p(r.at(t));
+        rec.set_id(Some(self.id));
+
+        true
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
+        Some(aabb::AABB::new(
+            Vec3::new(self.x0, self.z0, self.k - 0.0001),
+            Vec3::new(self.x1, self.z1, self.k + 0.0001),
+        ))
+    }
+
+    fn id(&self) -> Option<usize> {
+        Some(self.id)
+    }
+}
+
+
+pub struct YZRect {
+    y0: f64,
+    y1: f64,
+    z0: f64,
+    z1: f64,
+    k: f64,
+    id: usize,
+}
+
+impl YZRect {
+    pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k: f64, id: usize) -> YZRect {
+        YZRect {
+            y0,
+            y1,
+            z0,
+            z1,
+            k,
+            id,
+        }
+    }
+}
+
+impl HitAble for YZRect {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        let t = (self.k - r.origin().x()) / r.direction().x();
+
+        if t < t_min || t > t_max {
+            return false;
+        }
+
+        let y = r.origin().y() + t * r.direction().y();
+        let z = r.origin().z() + t * r.direction().z();
+
+        if y < self.y0 || y > self.y1 || z < self.z0 || z > self.z1 {
+            return false;
+        }
+
+        rec.set_u((y - self.y0) / (self.y1 - self.y0));
+        rec.set_u((z - self.z0) / (self.z1 - self.z0));
+
+        rec.set_t(t);
+
+        let outward_normal = Vec3::new(1.0, 0.0, 0.0);
+
+        rec.set_face_normal(r, &outward_normal);
+        rec.set_p(r.at(t));
+        rec.set_id(Some(self.id));
+
+        true
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
+        Some(aabb::AABB::new(
+            Vec3::new(self.y0, self.z0, self.k - 0.0001),
+            Vec3::new(self.y1, self.z1, self.k + 0.0001),
+        ))
+    }
+
+    fn id(&self) -> Option<usize> {
+        Some(self.id)
+    }
+}
