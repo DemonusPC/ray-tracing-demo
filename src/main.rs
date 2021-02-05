@@ -26,7 +26,7 @@ use camera::Camera;
 use material::Lambertian;
 use material::Metal;
 use material::{Dielectric, DiffuseLight};
-use models::{Sphere, XYRect};
+use models::{Sphere, XYRect, XZRect, YZRect};
 use utility::{random_double, random_double_from_values};
 use world::World;
 
@@ -256,37 +256,80 @@ fn simple_light() -> World {
     World::new(objects, materials)
 }
 
+fn cornell_box() -> World {
+    let mut objects: Vec<Box<dyn HitAble>> = vec![];
+    let mut materials: Vec<Rc<dyn Material>> = vec![];
+
+    let mut id = 0;
+
+    let red = Rc::new(Lambertian::new(Vec3::new(0.65, 0.05, 0.05)));
+    let white = Rc::new(Lambertian::new(Vec3::new(0.73, 0.73, 0.73)));
+    let green = Rc::new(Lambertian::new(Vec3::new(0.12, 0.45, 0.15)));
+    let light = Rc::new(DiffuseLight::new(Vec3::new(15.0, 15.0, 15.0)));
+    
+
+
+    objects.push(Box::new(YZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, id as usize)));
+    materials.push(green.clone());
+    id += 1;
+
+    objects.push(Box::new(YZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, id as usize)));
+    materials.push(red.clone());
+    id += 1;
+
+    objects.push(Box::new(XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, id as usize)));
+    materials.push(light);
+    id += 1;
+
+    objects.push(Box::new(XZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, id as usize)));
+    materials.push(white.clone());
+    id += 1;
+
+    objects.push(Box::new(XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, id as usize)));
+    materials.push(white.clone());
+    id += 1;
+
+    objects.push(Box::new(XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, id as usize)));
+    materials.push(white.clone());
+    id += 1;
+
+    
+
+    World::new(objects, materials)
+
+}
+
 fn main() {
     let now = SystemTime::now();
 
-    let aspect_ratio = 16.0 / 9.0;
+    let aspect_ratio = 1.0;
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 400;
+    let samples_per_pixel = 200;
     let max_depth = 50;
 
     print!("P3\n{} {}\n255\n", image_width, image_height);
 
-    // let world = random_scene_new();
-    // let world = two_spheres_scene();
-    // let world = two_perlin_spheres();
-    // let world = earth();
-    let world = simple_light();
+    // let world = simple_light();
+    let world = cornell_box();
 
-    let lookfrom = Vec3::new(26.0, 3.0, 6.0);
-    let lookat = Vec3::new(0.0, 2.0, 0.0);
+
+    let lookfrom = Vec3::new(278.0, 278.0, -800.0);
+    let lookat = Vec3::new(278.0, 278.0, 0.0);
     let vup = Vec3::new(0.0, 1.0, 0.0);
 
+
+
     let dist_to_focus = 10.0;
-    let aperture = 0.1;
+    let aperture = 0.0;
     let background = Vec3::empty();
 
     let cam = Camera::new(
         lookfrom,
         lookat,
         vup,
-        20.0,
-        image_width as f64 / image_height as f64,
+        40.0,
+        aspect_ratio,
         aperture,
         dist_to_focus,
         0.0,
