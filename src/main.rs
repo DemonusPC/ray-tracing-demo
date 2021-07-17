@@ -26,7 +26,7 @@ use camera::Camera;
 use material::Lambertian;
 use material::Metal;
 use material::{Dielectric, DiffuseLight};
-use models::{Sphere, XYRect, XZRect, YZRect};
+use models::{Sphere, XYRect, XZRect, YZRect, Box3D};
 use utility::{random_double, random_double_from_values};
 use world::World;
 
@@ -293,6 +293,13 @@ fn cornell_box() -> World {
     materials.push(white.clone());
     id += 1;
 
+    objects.push(Box::new(Box3D::new(Vec3::new(130.0, 0.0, 65.0), Vec3::new(295.0, 165.0, 230.0), id as usize)));
+    materials.push(white.clone());
+    id += 1;
+
+    objects.push(Box::new(Box3D::new(Vec3::new(265.0, 0.0, 295.0), Vec3::new(430.0, 330.0, 460.0), id as usize)));
+    materials.push(white.clone());
+    id += 1;
     
 
     World::new(objects, materials)

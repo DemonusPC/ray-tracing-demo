@@ -1,4 +1,4 @@
-use crate::aabb::{self, AABB};
+use crate::{aabb::{self, AABB}, world::World};
 use crate::hit::{HitAble, HitRecord};
 use crate::material::Material;
 use crate::ray::Ray;
@@ -360,6 +360,56 @@ impl HitAble for YZRect {
             Vec3::new(self.y0, self.z0, self.k - 0.0001),
             Vec3::new(self.y1, self.z1, self.k + 0.0001),
         ))
+    }
+
+    fn id(&self) -> Option<usize> {
+        Some(self.id)
+    }
+}
+
+pub struct Box3D {
+    id: usize,
+    box_min: Vec3,
+    box_max: Vec3,
+    sides: Vec<Box<dyn HitAble>>,
+}
+
+impl Box3D {
+    pub fn new(p0: Vec3, p1: Vec3, id: usize) -> Self{
+        let mut sides: Vec<Box<dyn HitAble>>  = vec![];
+
+        sides.push(Box::new(XYRect::new(p0.x(), p1.x(), p0.y(), p1.y(), p1.z(), id)));
+        sides.push(Box::new(XYRect::new(p0.x(), p1.x(), p0.y(), p1.y(), p0.z(), id)));
+
+        sides.push(Box::new(XZRect::new(p0.x(), p1.x(), p0.z(), p1.z(), p1.y(), id)));
+        sides.push(Box::new(XZRect::new(p0.x(), p1.x(), p0.z(), p1.z(), p0.y(), id)));
+
+        sides.push(Box::new(YZRect::new(p0.y(), p1.y(), p0.z(), p1.z(), p1.x(), id)));
+        sides.push(Box::new(YZRect::new(p0.y(), p1.y(), p0.z(), p1.z(), p0.x(), id)));
+
+        Box3D {
+            id,
+            box_min: p0,
+            box_max: p1,
+            sides
+        }
+
+    }
+}
+
+impl HitAble for Box3D {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        for object in self.sides.iter() {
+            if object.hit(r, t_min, t_max, rec) {
+                rec.set_id(Some(self.id));
+                return true;
+            }
+        }
+        false
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
+        Some(AABB::new(self.box_min, self.box_max))
     }
 
     fn id(&self) -> Option<usize> {
