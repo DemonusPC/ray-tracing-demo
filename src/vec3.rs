@@ -2,7 +2,7 @@ use std::f64::consts::PI;
 use std::fmt;
 use std::ops;
 
-use crate::utility::{clamp, ffmin, random_double, random_double_from_values};
+use crate::utility::{ffmin, random_double, random_double_from_values};
 
 #[derive(Copy, Clone)]
 pub struct Vec3 {
@@ -94,14 +94,14 @@ impl Vec3 {
     pub fn write_color(&self, samples_per_pixel: i32) {
         let scale = 1.0 / samples_per_pixel as f64;
 
-        let r = (scale * self.e[0]).sqrt();
-        let g = (scale * self.e[1]).sqrt();
-        let b = (scale * self.e[2]).sqrt();
+        let r: f64 = (scale * self.e[0]).sqrt();
+        let g: f64 = (scale * self.e[1]).sqrt();
+        let b: f64 = (scale * self.e[2]).sqrt();
         print!(
             "{} {} {}\n",
-            (256.0 * clamp(r, 0.0, 0.999)) as i32,
-            (256.0 * clamp(g, 0.0, 0.999)) as i32,
-            (256.0 * clamp(b, 0.0, 0.999)) as i32,
+            (256.0 * r.clamp(0.0, 0.999)) as i32,
+            (256.0 * g.clamp(0.0, 0.999)) as i32,
+            (256.0 * b.clamp(0.0, 0.999)) as i32,
         );
     }
 

@@ -234,23 +234,30 @@ fn simple_light() -> World {
     let pertext2 = PerlinTexture::new(4.0);
 
     // let ground_material2 = Rc::new(Lambertian::from_perlin(pertext2));
-    let ground_material2 = Rc::new(Lambertian::new(Vec3::new(1.0, 0.0, 0.0)));
-    objects.push(Box::new(Sphere::new(
-        Vec3::new(0.0, 2.0, 0.0),
-        2.0,
-        id as usize,
-    )));
-    materials.push(ground_material2);
+    // let ground_material2 = Rc::new(Lambertian::new(Vec3::new(1.0, 0.0, 0.0)));
+    // objects.push(Box::new(Sphere::new(
+    //     Vec3::new(0.0, 2.0, 0.0),
+    //     2.0,
+    //     id as usize,
+    // )));
+    // materials.push(ground_material2);
 
+    // id += 1;
+
+    let white = Rc::new(Lambertian::new(Vec3::new(0.73, 0.73, 0.73)));
+    objects.push(Box::new(Box3D::new(Vec3::new(-1.0, 0.0, -0.8), Vec3::new(3.0, 3.0, 2.0), id as usize)));
+    materials.push(white.clone());
     id += 1;
+
+
 
     let diff_light = Rc::new(DiffuseLight::new(Vec3::new(4.0, 4.0, 4.0)));
     objects.push(Box::new(XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, id as usize)));
-    // objects.push(Box::new(Sphere::new(
-    //     Vec3::new(4.0, 4.0, 5.0),
-    //     5.0,
-    //     id as usize
-    // )));
+    objects.push(Box::new(Sphere::new(
+        Vec3::new(2.0, 12.0, 5.0),
+        3.0,
+        id as usize
+    )));
     materials.push(diff_light);
 
     World::new(objects, materials)
@@ -319,6 +326,11 @@ fn main() {
 
     // let world = simple_light();
     let world = cornell_box();
+
+    
+    // let lookfrom = Vec3::new(26.0, 3.0, 6.0);
+    // let lookat = Vec3::new(0.0, 2.0, 0.0);
+    // let vup = Vec3::new(0.0, 1.0, 0.0);
 
 
     let lookfrom = Vec3::new(278.0, 278.0, -800.0);

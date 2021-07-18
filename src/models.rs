@@ -399,13 +399,18 @@ impl Box3D {
 
 impl HitAble for Box3D {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        let mut hit_anything = false;
+        let mut closest_so_far = t_max;
+
         for object in self.sides.iter() {
-            if object.hit(r, t_min, t_max, rec) {
-                rec.set_id(Some(self.id));
-                return true;
+            if object.hit(r, t_min, closest_so_far, rec) {
+                hit_anything = true;
+                closest_so_far = rec.t();
+                rec.set_id(self.id())
             }
         }
-        false
+
+        hit_anything
     }
 
     fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
