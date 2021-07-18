@@ -203,10 +203,34 @@ impl ops::Add for Vec3 {
     }
 }
 
+impl ops::Add for &Vec3 {
+    type Output = Vec3;
+
+    fn add(self, other: &Vec3) -> Vec3 {
+        Vec3::new(
+            self.e[0] + other[0],
+            self.e[1] + other[1],
+            self.e[2] + other[2],
+        )
+    }
+}
+
 impl ops::Sub for Vec3 {
     type Output = Vec3;
 
     fn sub(self, other: Vec3) -> Vec3 {
+        Vec3::new(
+            self.e[0] - other[0],
+            self.e[1] - other[1],
+            self.e[2] - other[2],
+        )
+    }
+}
+
+impl ops::Sub for &Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, other: &Vec3) -> Vec3 {
         Vec3::new(
             self.e[0] - other[0],
             self.e[1] - other[1],
@@ -344,6 +368,22 @@ mod tests {
     fn test_sub() {
         let one = Vec3::new(1.0, 2.0, 3.0);
         let two = Vec3::new(3.0, 2.0, 1.0);
+        let result = one - two;
+        equality(&result, -2.0, 0.0, 2.0);
+    }
+
+    #[test]
+    fn test_add_borrowed() {
+        let one = &Vec3::new(1.0, 2.0, 3.0);
+        let two = &Vec3::new(3.0, 2.0, 1.0);
+        let result = one + two;
+        equality(&result, 4.0, 4.0, 4.0);
+    }
+
+    #[test]
+    fn test_sub_borrowed() {
+        let one = &Vec3::new(1.0, 2.0, 3.0);
+        let two = &Vec3::new(3.0, 2.0, 1.0);
         let result = one - two;
         equality(&result, -2.0, 0.0, 2.0);
     }

@@ -9,6 +9,7 @@ mod texture;
 mod utility;
 mod vec3;
 mod world;
+mod transforms;
 
 use std::time::{Duration, SystemTime};
 
