@@ -302,27 +302,7 @@ fn cornell_box() -> World {
     objects.push(Box::new(XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, id as usize)));
     materials.push(white.clone());
     id += 1;
-
-    // objects.push(Box::new(Box3D::new(Vec3::new(130.0, 0.0, 65.0), Vec3::new(295.0, 165.0, 230.0), id as usize)));
-    // materials.push(white.clone());
-    // id += 1;
-
-    // objects.push(Box::new(Box3D::new(Vec3::new(265.0, 0.0, 295.0), Vec3::new(430.0, 330.0, 460.0), id as usize)));
-    // materials.push(white.clone());
-    // id += 1;
-
-    // let box_1 = Box::new(Box3D::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(165.0, 330.0, 165.0), id as usize));
-    // let rotated_box = Box::new(RotateY::new(box_1, 0.0));
-    // objects.push(Box::new(Translate::new(rotated_box, Vec3::new(265.0, 0.0, 295.0))));
-    // materials.push(white.clone());
-    // id += 1;
-
-    // let box_2 = Box::new(Box3D::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(165.0, 165.0, 165.0), id as usize));
-    // objects.push(Box::new(Translate::new( box_2, Vec3::new(130.0, 0.0, 65.0))));
-    // materials.push(white.clone());
-    // id += 1;
     
-
     let box_1 = Box::new(Box3D::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(165.0, 330.0, 165.0), id as usize));
     objects.push(Box::new(Translate::new(Box::new(RotateY::new(box_1, 15.0)), Vec3::new(265.0, 0.0, 295.0))));
     materials.push(white.clone());
