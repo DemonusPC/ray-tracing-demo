@@ -1,3 +1,4 @@
+use crate::random_double_from_values;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
@@ -15,6 +16,8 @@ pub struct Camera {
     v: Vec3,
     w: Vec3,
     lens_radius: f64,
+    time0: f64,
+    time1: f64,
 }
 
 impl Camera {
@@ -26,6 +29,8 @@ impl Camera {
         aspect_ratio: f64,
         aperture: f64,
         focus_dist: f64,
+        time0: f64,
+        time1: f64,
     ) -> Camera {
         let theta = vfov.to_radians();
         let h = (theta / 2.0).tan();
@@ -52,6 +57,8 @@ impl Camera {
             v: v,
             w: w,
             lens_radius: lens_radius,
+            time0,
+            time1,
         }
     }
 
@@ -64,6 +71,10 @@ impl Camera {
             - self.origin
             - offset;
 
-        Ray::new(&origin, &direction)
+        Ray::new(
+            &origin,
+            &direction,
+            random_double_from_values(self.time0, self.time1),
+        )
     }
 }

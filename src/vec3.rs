@@ -2,7 +2,7 @@ use std::f64::consts::PI;
 use std::fmt;
 use std::ops;
 
-use crate::utility::{clamp, random_double, random_double_from_values};
+use crate::utility::{ffmin, random_double, random_double_from_values};
 
 #[derive(Copy, Clone)]
 pub struct Vec3 {
@@ -94,14 +94,14 @@ impl Vec3 {
     pub fn write_color(&self, samples_per_pixel: i32) {
         let scale = 1.0 / samples_per_pixel as f64;
 
-        let r = (scale * self.e[0]).sqrt();
-        let g = (scale * self.e[1]).sqrt();
-        let b = (scale * self.e[2]).sqrt();
+        let r: f64 = (scale * self.e[0]).sqrt();
+        let g: f64 = (scale * self.e[1]).sqrt();
+        let b: f64 = (scale * self.e[2]).sqrt();
         print!(
             "{} {} {}\n",
-            (256.0 * clamp(r, 0.0, 0.999)) as i32,
-            (256.0 * clamp(g, 0.0, 0.999)) as i32,
-            (256.0 * clamp(b, 0.0, 0.999)) as i32,
+            (256.0 * r.clamp(0.0, 0.999)) as i32,
+            (256.0 * g.clamp(0.0, 0.999)) as i32,
+            (256.0 * b.clamp(0.0, 0.999)) as i32,
         );
     }
 
@@ -127,10 +127,11 @@ impl Vec3 {
     }
 
     pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f64) -> Vec3 {
-        let cos_theta = Vec3::dot(&-uv, n);
-        let r_out_parallel: Vec3 = (*uv + (*n * cos_theta)) * etai_over_etat;
+        let cos_theta = ffmin(Vec3::dot(&-uv, n), 1.0);
 
-        let r_out_perp = *n * (-(1.0 - r_out_parallel.length_squared()).sqrt());
+        let r_out_perp: Vec3 = etai_over_etat * (uv.clone() + (cos_theta * n.clone()));
+
+        let r_out_parallel = (-((1.0 - r_out_perp.length_squared()).abs()).sqrt()) * n.clone();
 
         r_out_parallel + r_out_perp
     }
@@ -202,10 +203,34 @@ impl ops::Add for Vec3 {
     }
 }
 
+impl ops::Add for &Vec3 {
+    type Output = Vec3;
+
+    fn add(self, other: &Vec3) -> Vec3 {
+        Vec3::new(
+            self.e[0] + other[0],
+            self.e[1] + other[1],
+            self.e[2] + other[2],
+        )
+    }
+}
+
 impl ops::Sub for Vec3 {
     type Output = Vec3;
 
     fn sub(self, other: Vec3) -> Vec3 {
+        Vec3::new(
+            self.e[0] - other[0],
+            self.e[1] - other[1],
+            self.e[2] - other[2],
+        )
+    }
+}
+
+impl ops::Sub for &Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, other: &Vec3) -> Vec3 {
         Vec3::new(
             self.e[0] - other[0],
             self.e[1] - other[1],
@@ -230,6 +255,14 @@ impl ops::Mul<f64> for Vec3 {
     type Output = Vec3;
     fn mul(self, other: f64) -> Vec3 {
         Vec3::new(self.e[0] * other, self.e[1] * other, self.e[2] * other)
+    }
+}
+
+impl ops::Mul<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn mul(self, other: Vec3) -> Vec3 {
+        Vec3::new(self * other.x(), self * other.y(), self * other.z())
     }
 }
 
@@ -340,6 +373,22 @@ mod tests {
     }
 
     #[test]
+    fn test_add_borrowed() {
+        let one = &Vec3::new(1.0, 2.0, 3.0);
+        let two = &Vec3::new(3.0, 2.0, 1.0);
+        let result = one + two;
+        equality(&result, 4.0, 4.0, 4.0);
+    }
+
+    #[test]
+    fn test_sub_borrowed() {
+        let one = &Vec3::new(1.0, 2.0, 3.0);
+        let two = &Vec3::new(3.0, 2.0, 1.0);
+        let result = one - two;
+        equality(&result, -2.0, 0.0, 2.0);
+    }
+
+    #[test]
     fn test_mul() {
         let one = Vec3::new(1.0, 2.0, 3.0);
         let two = Vec3::new(3.0, 2.0, 1.0);
@@ -399,9 +448,9 @@ mod tests {
 
         equality(
             &result,
-            12.576888838089431,
-            -8.976888838089431,
-            21.553777676178864,
+            12.512327793863538,
+            -8.912327793863536,
+            21.424655587727074,
         )
     }
 }
